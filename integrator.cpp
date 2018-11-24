@@ -1,7 +1,9 @@
-#define const_Bz
+#define simulation 
 #include "integrator.h"
+#include "sim_dat.h"
+#include <stddef.h>
 
-float acceleration( const Particle & particle, double t, int axis){
+float acceleration( const Particle & particle, double t, int axis, SimDat &sd){
 
     #ifdef spring
         const float k = 15.0f;
@@ -15,12 +17,24 @@ float acceleration( const Particle & particle, double t, int axis){
         return -1*particle.state[3+(axis+1)%3]*B[(axis+2)%3]+particle.state[3+(axis+2)%3]*B[(axis+1)%3];
      #endif
 
+    #ifdef simulation
+        float pss[6]; 
+
+        //Get interpolated data
+        TrilinearInterpolate(particle, sd, pss);
+
+        //Calc acceleration
+
+
+    #endif
+
 }
 
 Derivative evaluate( const Particle & particle_init, 
                      double t, 
                      float dt, 
-                     const Derivative & d ){
+                     const Derivative & d,
+                     SimDat &sd){
     Particle temp;
 
     for (int i =0; i<6; i++){
@@ -30,7 +44,7 @@ Derivative evaluate( const Particle & particle_init,
     Derivative output;
     for (int i =0; i<3; i++){
         output.d[i] = temp.state[3+i];
-        output.d[3+i] = acceleration( temp, t+dt, i);
+        output.d[3+i] = acceleration( temp, t+dt, i, sd);
         }
     return output;
 }
@@ -38,7 +52,8 @@ Derivative evaluate( const Particle & particle_init,
 
 void integrate( Particle & particle, 
                 double t, 
-                float dt ){
+                float dt,
+                SimDat &sd){
 
     Derivative a,b,c,d;//,k;
     //for (int i =0; i<3; i++){
@@ -46,10 +61,10 @@ void integrate( Particle & particle,
     //  k.d[3+i] = acceleration(particle, t, i);
         //}
 
-    a = evaluate( particle, t, 0.0f, Derivative());
-    b = evaluate( particle, t, dt*0.5f, a );
-    c = evaluate( particle, t, dt*0.5f, b );
-    d = evaluate( particle, t, dt, c );
+    a = evaluate( particle, t, 0.0f, Derivative(), sd);
+    b = evaluate( particle, t, dt*0.5f, a, sd);
+    c = evaluate( particle, t, dt*0.5f, b, sd);
+    d = evaluate( particle, t, dt, c, sd);
 
     float ddt[6];
 

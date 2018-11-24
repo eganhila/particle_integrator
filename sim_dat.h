@@ -1,4 +1,4 @@
-
+//Global Simulation Data
 struct SimDat {
 
     SimDat(int new_dim){
@@ -11,9 +11,9 @@ struct SimDat {
         Bx = new float[dim3];
         By = new float[dim3];
         Bz = new float[dim3];
-        Ux = new float[dim3];
-        Uy = new float[dim3];
-        Uz = new float[dim3];
+        Ex = new float[dim3];
+        Ey = new float[dim3];
+        Ez = new float[dim3];
 
     }
 
@@ -24,14 +24,24 @@ struct SimDat {
         delete[] Bx;
         delete[] By;
         delete[] Bz;
-        delete[] Ux;
-        delete[] Uy;
-        delete[] Uz;
+        delete[] Ex;
+        delete[] Ey;
+        delete[] Ez;
     }
+
+    void GetSimState (const int i, const int j, const int k, float *out) const{
+        out[0] = Bx[i,j,k];
+        out[1] = By[i,j,k];
+        out[2] = Bz[i,j,k];
+        out[3] = Ex[i,j,k];
+        out[4] = Ey[i,j,k];
+        out[5] = Ez[i,j,k];
+    }
+
 
     int dim;
     float * Bx,* By, * Bz;
-    float * Ux,* Uy, * Uz;
+    float * Ex,* Ey, * Ez;
     float * x, * y, * z;
 };
 

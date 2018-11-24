@@ -35,14 +35,14 @@ int read_simulation_data(SimDat& sd){
     status = H5Dclose (dsety);
     status = H5Dclose (dsetz);
     
-    //v field
+    //E field THIS IS A PLACEHOLDER, NEED TO ACTUAL CALCULATE
     dsetx = H5Dopen (file, "electron_velocity_x", H5P_DEFAULT);
     dsety = H5Dopen (file, "electron_velocity_y", H5P_DEFAULT);
     dsetz = H5Dopen (file, "electron_velocity_z", H5P_DEFAULT);
 
-    status = H5Dread(dsetx, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ux);
-    status = H5Dread(dsety, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Uy);
-    status = H5Dread(dsetz, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Uz);
+    status = H5Dread(dsetx, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ex);
+    status = H5Dread(dsety, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ey);
+    status = H5Dread(dsetz, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ez);
 
     status = H5Dclose (dsetx);
     status = H5Dclose (dsety);
