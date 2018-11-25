@@ -1,13 +1,14 @@
 #include "sim_dat.h"
+#include <string>
 #include "hdf5.h"
 #define FILE            "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_0nT.h5"
 
-int read_simulation_data(SimDat& sd){
+int read_simulation_data(SimDat& sd, const char* file_name){
     hid_t       file, space, dset, dsetx, dsety, dsetz;          /* Handles */
     herr_t      status;
     int            i, j, k;
 
-    file = H5Fopen (FILE, H5F_ACC_RDONLY, H5P_DEFAULT);
+    file = H5Fopen (file_name, H5F_ACC_RDONLY, H5P_DEFAULT);
 
     //x,y,z
     dsetx = H5Dopen (file, "x", H5P_DEFAULT);
