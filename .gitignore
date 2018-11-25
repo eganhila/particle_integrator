@@ -1,0 +1,5 @@
+*.swp
+*.o
+ptest
+pinter
+test/*.h5
