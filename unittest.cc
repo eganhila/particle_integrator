@@ -22,7 +22,26 @@ void setupFakeSD(SimDat & sd){
         sd.z[i] = i+1;
     }
 }
+//------------------------ INTEGRATOR TESTS -----------------------------///
+
 ///----------------------- INTERPOLATE TESTS ----------------------------///
+
+TEST(TrilinearInterpolateTest, Normal){
+    SimDat sd(3);
+    setupFakeSD(sd);
+
+    float pos[3] = {0.5,0.75,2.5};
+    float pss_out[6];
+
+    TrilinearInterpolate(pos, sd, pss_out);
+    EXPECT_EQ(pss_out[0], 0.5);
+    EXPECT_EQ(pss_out[1], 1.5);
+    EXPECT_EQ(pss_out[2], 1.5);
+    EXPECT_EQ(pss_out[3], 2);
+    EXPECT_EQ(pss_out[4], 1);
+    EXPECT_EQ(pss_out[5], 0);
+
+}
 
 TEST(GetCellIdxTest, Normal){
     SimDat sd(3);

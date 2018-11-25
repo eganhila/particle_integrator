@@ -3,31 +3,39 @@
 #include "sim_dat.h"
 #include <stddef.h>
 
-float acceleration( const Particle & particle, double t, int axis, SimDat &sd){
-
-    #ifdef spring
+void spring_accel( const Particle & particle, float * acc){
         const float k = 15.0f;
         const float b = 0.1f;
 
-        return -k * particle.state[axis] - b * particle.state[3+axis];
-    #endif
+        for (int axis=0; axis<3; axis++){
+            acc[i] = -k * particle.state[axis] - b * particle.state[3+axis];
+        }
+}
 
-     #ifdef const_Bz
+void constBz_accel(const Particle & particle, float * acc){
         const float B[3] = {0,0,5};
-        return -1*particle.state[3+(axis+1)%3]*B[(axis+2)%3]+particle.state[3+(axis+2)%3]*B[(axis+1)%3];
-     #endif
 
-    #ifdef simulation
-        float pss[6]; 
+        for (int axis=0; axis<3; axis++){
+            acc[i] = -1*particle.state[3+(axis+1)%3]*B[(axis+2)%3]+particle.state[3+(axis+2)%3]*B[(axis+1)%3];
+        {
+}
 
-        //Get interpolated data
-        //TrilinearInterpolate(particle, sd, pss);
+float simDat_accel(const Particle & particle, double t,  SimDat &sd, float * acc){
+    float pss[6]; 
 
-        //Calc acceleration
+    //Get interpolated data
+    TrilinearInterpolate(particle, sd, pss);
 
+    //Calc acceleration
+    for (int i=0; i<3; i++){
+        acc[i] = particle.charge * (
+                particle.state[3+(i+1)%3]*pss[(i+2)%3]+
+                particle.state[3+(i+2)%3]*pss[(i+1)%3])/particle.mass;
+    }
+}
 
-    #endif
-    return 0;
+void acceleration( const Particle & particle, double t, SimDat &sd, float * acc){
+    simDat_accel(particle, t, sd, acc);
 }
 
 Derivative evaluate( const Particle & particle_init, 
@@ -43,9 +51,8 @@ Derivative evaluate( const Particle & particle_init,
 
     Derivative output;
     for (int i =0; i<3; i++){
-        output.d[i] = temp.state[3+i];
-        output.d[3+i] = acceleration( temp, t+dt, i, sd);
-        }
+        output.d[i] = temp.state[3+i];}
+    acceleration( temp, t+dt,  output.d[3])
     return output;
 }
 
