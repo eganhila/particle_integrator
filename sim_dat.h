@@ -1,3 +1,8 @@
+#ifndef SIMDAT_H
+#define SIMDAT_H
+
+#include <string>
+
 //Global Simulation Data
 struct SimDat {
 
@@ -31,7 +36,7 @@ struct SimDat {
 
     void GetSimState (const int i, const int j, const int k, float *out) const{
         int idx = i*dim*dim+j*dim+k;
-        out[0] = Bx[idx];
+        out[0] = Bx[idx]; 
         out[1] = By[idx];
         out[2] = Bz[idx];
         out[3] = Ex[idx];
@@ -46,4 +51,6 @@ struct SimDat {
     float * x, * y, * z;
 };
 
-int read_simulation_data(SimDat& sd);
+int read_simulation_data(SimDat& sd, const char* file_name);
+
+#endif /* SIMDAT_H */
