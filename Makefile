@@ -1,14 +1,23 @@
 CXX=g++
-LDFlAGS=-std=c++11 #-lhdf5
-LIBS=-std=c++11 -lhdf5 
+CXXFLAGS=-std=c++11 #-lhdf5
+LIBS=-std=c++11 -lhdf5 -lgtest -lpthread 
+ADD_FLAGS=
 
-src = $(wildcard *.cpp)
-obj = $(src:.cpp=.o)
+src = $(wildcard *.cc)
+obj = $(src:.cc=.o)
 
 
 pinter: $(obj)
-	$(CXX)  $(LIBS) -o $@ $^ $(LDFLAGS)
+	$(CXX)  $(CXXFLAGS) -o $@ $^ $(LIBS)
+
+ptest: ADD_FLAGS += -DGTEST
+ptest: $(obj)
+	$(CXX)  $(CXXFLAGS) $(ADD_FLAGS) -o $@ $^ $(LIBS)
+
+%.o: %.cc
+	$(CXX) $(CXXFLAGS) $(ADD_FLAGS) -o $@ -c $<
+
 
 .PHONY: clean
 clean:
-	rm *.o pinter 
+	rm *.o pinter ptest

@@ -1,8 +1,10 @@
-
+#include <iostream>
 #include "sim_dat.h"
 #include "integrator.h"
 
+#ifndef GTEST
 int main(){
+        std::cout <<"Running Main"<<std::endl; 
         Particle particle;
         SimDat sd(120);
         float t=0, dt=0.001, T=2;
@@ -26,3 +28,4 @@ int main(){
 
         return 0;
 }
+#endif
