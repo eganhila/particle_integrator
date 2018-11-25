@@ -30,12 +30,13 @@ struct SimDat {
     }
 
     void GetSimState (const int i, const int j, const int k, float *out) const{
-        out[0] = Bx[i,j,k];
-        out[1] = By[i,j,k];
-        out[2] = Bz[i,j,k];
-        out[3] = Ex[i,j,k];
-        out[4] = Ey[i,j,k];
-        out[5] = Ez[i,j,k];
+        int idx = i*dim*dim+j*dim+k;
+        out[0] = Bx[idx];
+        out[1] = By[idx];
+        out[2] = Bz[idx];
+        out[3] = Ex[idx];
+        out[4] = Ey[idx];
+        out[5] = Ez[idx];
     }
 
 

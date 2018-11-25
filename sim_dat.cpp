@@ -49,4 +49,6 @@ int read_simulation_data(SimDat& sd){
     status = H5Dclose (dsetz);
 
     status = H5Fclose (file);
+
+    return 0;
 }

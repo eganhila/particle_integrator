@@ -1,20 +1,14 @@
 CXX=g++
-LFlAGS=-lhdf5
-LIBS=-lhdf5
+LDFlAGS=-std=c++11 #-lhdf5
+LIBS=-std=c++11 -lhdf5 
 
-SRCS=main.cpp integrator.cpp sim_dat.cpp
-OBJS=$(subst .cc,.o,$(SRCS))
+src = $(wildcard *.cpp)
+obj = $(src:.cpp=.o)
 
-all: pinter
 
-pinter: $(OBJS)
-	$(CXX) $(LFLAGS) -o pinter $(OBJS) $(LIBS) 
+pinter: $(obj)
+	$(CXX)  $(LIBS) -o $@ $^ $(LDFLAGS)
 
-main.o: main.cpp sim_dat.h integrator.h
-
-integrator.o: integrator.cpp integrator.h
-
-sim_dat.o: sim_dat.h sim_dat.cpp
-
+.PHONY: clean
 clean:
-	$(RM) $(OBJS)
+	rm *.o pinter 

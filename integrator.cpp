@@ -21,13 +21,13 @@ float acceleration( const Particle & particle, double t, int axis, SimDat &sd){
         float pss[6]; 
 
         //Get interpolated data
-        TrilinearInterpolate(particle, sd, pss);
+        //TrilinearInterpolate(particle, sd, pss);
 
         //Calc acceleration
 
 
     #endif
-
+    return 0;
 }
 
 Derivative evaluate( const Particle & particle_init, 
