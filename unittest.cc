@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include "sim_dat.h"
 #include "interpolate.h"
+#include "integrator.h"
 
 void setupFakeSD(SimDat & sd){
     int i,j,k,d=sd.dim, idx;
