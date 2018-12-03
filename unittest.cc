@@ -3,6 +3,7 @@
 #include "sim_dat.h"
 #include "interpolate.h"
 #include "integrator.h"
+#include "acceleration.h"
 
 void setupFakeSD(SimDat & sd){
     int i,j,k,d=sd.dim, idx;
@@ -23,7 +24,134 @@ void setupFakeSD(SimDat & sd){
         sd.z[i] = i+1;
     }
 }
+
+//------------------------ ACCELERATION TESTS-----------------------------///
+
+TEST(AccelerationTests, ConstBz_Zero){
+    Particle p;
+    float acc[3];
+    SimDat sd(3);
+
+    for (int i=0; i<6; i++){p.state[i]= 0;}
+    
+    constBz_accel(p, sd, acc);
+
+    EXPECT_EQ(acc[0], 0.0);
+    EXPECT_EQ(acc[1], 0.0);
+    EXPECT_EQ(acc[2], 0.0);
+}
+
+TEST(AccelerationTests, ConstBz_NonZero){
+    Particle p;
+    float acc[3];
+    SimDat sd(3);
+
+    for (int i=0; i<6; i++){p.state[i]= 0;}
+    p.state[3] = 1;
+    p.state[5] = 3;
+    
+    constBz_accel(p, sd, acc);
+
+    EXPECT_EQ(acc[0], 0.0);
+    EXPECT_EQ(acc[1], 2);
+    EXPECT_EQ(acc[2], 0.0);
+}
+
+TEST(AccelerationTests, SimDat_Zero){
+    Particle p;
+    float acc[3];
+    SimDat sd(3);
+    setupFakeSD(sd);
+
+    for (int i=0; i<6; i++){p.state[i]= 0;}
+
+    simDat_accel(p, sd, acc);
+
+    EXPECT_EQ(acc[0], 0.0);
+    EXPECT_EQ(acc[1], 0.0);
+    EXPECT_EQ(acc[2], 0.0);
+
+
+}
+
+TEST(AccelerationTests, SimDat_ConstBz){
+    Particle p;
+    float acc[3];
+    SimDat sd(3);
+    int d = 3;
+
+    for (int i=0; i<6; i++){p.state[i]= 0;}
+    p.state[3] = 1;
+    p.state[5] = 3;
+
+    for (int i=0; i<27; i++){
+        sd.Bx[i] = 0;
+        sd.By[i] = 0;
+        sd.Bz[i] = 2;
+        sd.Ex[i] = 0;
+        sd.Ey[i] = 0;
+        sd.Ez[i] = 0;
+    }
+
+    simDat_accel(p, sd, acc);
+
+    EXPECT_EQ(acc[0], 0.0);
+    EXPECT_EQ(acc[1], 2);
+    EXPECT_EQ(acc[2], 0.0);
+
+}
+
+
+
 //------------------------ INTEGRATOR TESTS -----------------------------///
+
+TEST(IntegratorTest, ConstructorIntegers){
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = i;}
+    Integrator intg(p, 1, 2);
+
+    EXPECT_EQ(intg.t0, 1);
+    EXPECT_EQ(intg.dt, 2);
+    EXPECT_EQ(intg.t, 1);
+    EXPECT_EQ(intg.particle->state[0], 0);
+    EXPECT_EQ(intg.particle->state[4], 4);
+
+}
+
+TEST(IntegratorTest, ConstructorNonIntegers){
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = float(i)/2.0;}
+    Integrator intg(p, 0.5, 0.01);
+
+    EXPECT_EQ(intg.t0, 0.5);
+    EXPECT_EQ(intg.dt, float(0.01));
+    EXPECT_EQ(intg.t, 0.5);
+    EXPECT_EQ(intg.particle->state[0], 0);
+    EXPECT_EQ(intg.particle->state[3], 1.5);
+}
+
+TEST(IntegratorTest, SetSD){
+    Particle p;
+    Integrator intg(p, 0.5, 0.01);
+    SimDat sd(3);
+
+    intg.set_sd(sd);
+
+    EXPECT_EQ(intg.sd, &sd);
+}
+
+TEST(IntegratorTest, SetAccel){
+    Particle p;
+    Integrator intg(p, 0.5, 0.01);
+
+    intg.set_accel(simDat_accel);
+
+    EXPECT_EQ(intg.acc_func, &simDat_accel);
+
+}
+
+
+
 
 ///----------------------- INTERPOLATE TESTS ----------------------------///
 

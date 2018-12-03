@@ -19,8 +19,12 @@ int main(){
 
         read_simulation_data(sd, "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_0nT.h5");
 
+        Integrator integrator(particle, t0, dt);
+        integrator.set_accel(constBz_accel);
+
+
         while (t < T){
-                success = integrate(particle, t, dt, sd);
+                integrator.integrate(particle, t, dt, sd);
                 std::cout << particle.state[0]<<" " << particle.state[1]<<"\n";
                 t += dt;
                 if (success == false){ break;}
