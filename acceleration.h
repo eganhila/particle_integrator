@@ -6,6 +6,11 @@
 #include "sim_dat.h"
 
 
+void zero_accel(const Particle & particle, const SimDat &sd, float * acc){
+    for (int i=0; i<3; i++){
+        acc[i] = 0;}
+};
+
 void constBz_accel(const Particle & particle, const SimDat &sd, float * acc){
         const float B[3] = {0,0,2};
 

@@ -8,7 +8,7 @@
 
 
 void Integrator::evaluate_derivative( 
-                     double t, 
+                     float t, 
                      float dt, 
                      const float * d_in,
                      float * d_out){
@@ -42,7 +42,7 @@ bool Integrator::integrate_step(){
     bool success = true;
     float  d0[6] = {0,0,0,0,0,0},d1[6],d2[6],d3[6], d4[6], temp[6];
 
-    //This needs to be double checked b/c edited eval deriv func
+    //This needs to be float checked b/c edited eval deriv func
     evaluate_derivative( t, dt, d0, d1);
     
     for (int i=0; i<6; i++){temp[i] = d1[i]/2.0;}

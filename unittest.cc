@@ -105,6 +105,41 @@ TEST(AccelerationTests, SimDat_ConstBz){
 
 //------------------------ INTEGRATOR TESTS -----------------------------///
 
+TEST(IntegratorTest, IntegrateStationary){
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 0;}
+    Integrator intg(p, 1,5, 2);
+    intg.set_accel(constBz_accel);
+
+    intg.integrate();
+
+    EXPECT_FLOAT_EQ(intg.t_final, 5);
+    EXPECT_FLOAT_EQ(p.state[0], 0);
+    EXPECT_FLOAT_EQ(p.state[1], 0);
+    EXPECT_FLOAT_EQ(p.state[2], 0);
+    EXPECT_FLOAT_EQ(p.state[3], 0);
+    EXPECT_FLOAT_EQ(p.state[4], 0);
+    EXPECT_FLOAT_EQ(p.state[5], 0);
+
+}
+
+TEST(IntegratorTest, IntegrateLinear){
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 1;}
+    Integrator intg(p, 1,5, 2);
+    intg.set_accel(zero_accel);
+
+    intg.integrate();
+
+    EXPECT_FLOAT_EQ(intg.t_final, 5);
+    EXPECT_FLOAT_EQ(p.state[0], 5);
+    EXPECT_FLOAT_EQ(p.state[1], 5);
+    EXPECT_FLOAT_EQ(p.state[2], 5);
+    EXPECT_FLOAT_EQ(p.state[3], 1);
+    EXPECT_FLOAT_EQ(p.state[4], 1);
+    EXPECT_FLOAT_EQ(p.state[5], 1);
+}
+
 TEST(IntegratorTest, EvaluateDerivZero){
     Particle p;
     for (int i=0; i<6; i++){ p.state[i] = 0;}
@@ -252,7 +287,7 @@ TEST(IntegratorTest, ConstructorNonIntegers){
     EXPECT_EQ(intg.t0, 0.5);
     EXPECT_EQ(intg.dt, float(0.01));
     EXPECT_EQ(intg.t, 0.5);
-    EXPECT_EQ(intg.t_final, 50.6);
+    EXPECT_FLOAT_EQ(intg.t_final, 50.6);
     EXPECT_EQ(intg.particle->state[0], 0);
     EXPECT_EQ(intg.particle->state[3], 1.5);
 }
