@@ -10,7 +10,7 @@ struct Particle{
 
 class Integrator {
     public:
-        double t0, t;
+        double t0, t, t_final;
         float dt;
         Particle * particle;
         SimDat * sd = NULL;
@@ -23,8 +23,8 @@ class Integrator {
         void set_accel(void new_acc_func(const Particle & particle, const SimDat &sd, float * acc)){acc_func = new_acc_func;}
 
 
-        Integrator(Particle & new_particle, double new_t0, float new_dt) 
-            : t0(new_t0), t(new_t0), dt(new_dt), particle(&new_particle){}
+        Integrator(Particle & new_particle, double new_t0, double new_tfinal,  float new_dt) 
+            : t0(new_t0), t(new_t0), t_final(new_tfinal),dt(new_dt), particle(&new_particle){}
 
         void evaluate_derivative(double t, float dt, const float * d_in,  float * d_out);
         bool integrate_step();

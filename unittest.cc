@@ -108,7 +108,7 @@ TEST(AccelerationTests, SimDat_ConstBz){
 TEST(IntegratorTest, EvaluateDerivZero){
     Particle p;
     for (int i=0; i<6; i++){ p.state[i] = 0;}
-    Integrator intg(p, 1, 2);
+    Integrator intg(p, 1,5, 2);
     intg.set_accel(constBz_accel);
 
     float d_in[6]={0}, d_out[6];
@@ -128,7 +128,7 @@ TEST(IntegratorTest, EvaluateDerivBase){
     for (int i=0; i<6; i++){ p.state[i] = 0;}
     p.state[3] = 1;
     p.state[5] = 3;
-    Integrator intg(p, 1, 1);
+    Integrator intg(p, 1,6,  1);
     intg.set_accel(constBz_accel);
 
     float d_in[6]={0}, d_out[6];
@@ -148,7 +148,7 @@ TEST(IntegratorTest, EvaluateDerivSmallDt){
     for (int i=0; i<6; i++){ p.state[i] = 0;}
     p.state[3] = 1;
     p.state[5] = 3;
-    Integrator intg(p, 1, 0.5);
+    Integrator intg(p, 1,5, 0.5);
     intg.set_accel(constBz_accel);
 
     float d_in[6]={0}, d_out[6];
@@ -171,7 +171,7 @@ TEST(IntegratorTest, EvaluateDerivDin){
     for (int i=0; i<6; i++){ p.state[i] = 0;}
     p.state[3] = 1;
     p.state[5] = 3;
-    Integrator intg(p, 1, 0.5);
+    Integrator intg(p, 1,5, 0.5);
     intg.set_accel(constBz_accel);
 
     float d_in[6]={1,0,0,1,0,0}, d_out[6];
@@ -192,7 +192,7 @@ TEST(IntegratorTest, RK4MethodLinear){
     for (int i=0; i<6; i++){ p.state[i] = 0;}
     p.state[3] = 1;
     p.state[5] = 3;
-    Integrator intg(p, 0, 1);
+    Integrator intg(p, 0,5, 1);
     intg.set_accel(constBz_accel);
 
     intg.integrate_step();
@@ -213,7 +213,7 @@ TEST(IntegratorTest, RK4MethodLinearSmallDt){
     for (int i=0; i<6; i++){ p.state[i] = 0;}
     p.state[3] = 1;
     p.state[5] = 3;
-    Integrator intg(p, 0, 0.5);
+    Integrator intg(p, 0,4,  0.5);
     intg.set_accel(constBz_accel);
 
     intg.integrate_step();
@@ -233,11 +233,12 @@ TEST(IntegratorTest, RK4MethodLinearSmallDt){
 TEST(IntegratorTest, ConstructorIntegers){
     Particle p;
     for (int i=0; i<6; i++){ p.state[i] = i;}
-    Integrator intg(p, 1, 2);
+    Integrator intg(p, 1,4,  2);
 
     EXPECT_EQ(intg.t0, 1);
     EXPECT_EQ(intg.dt, 2);
     EXPECT_EQ(intg.t, 1);
+    EXPECT_EQ(intg.t_final, 4);
     EXPECT_EQ(intg.particle->state[0], 0);
     EXPECT_EQ(intg.particle->state[4], 4);
 
@@ -246,18 +247,19 @@ TEST(IntegratorTest, ConstructorIntegers){
 TEST(IntegratorTest, ConstructorNonIntegers){
     Particle p;
     for (int i=0; i<6; i++){ p.state[i] = float(i)/2.0;}
-    Integrator intg(p, 0.5, 0.01);
+    Integrator intg(p, 0.5,50.6,  0.01);
 
     EXPECT_EQ(intg.t0, 0.5);
     EXPECT_EQ(intg.dt, float(0.01));
     EXPECT_EQ(intg.t, 0.5);
+    EXPECT_EQ(intg.t_final, 50.6);
     EXPECT_EQ(intg.particle->state[0], 0);
     EXPECT_EQ(intg.particle->state[3], 1.5);
 }
 
 TEST(IntegratorTest, SetSD){
     Particle p;
-    Integrator intg(p, 0.5, 0.01);
+    Integrator intg(p, 0.5, 1,  0.01);
     SimDat sd(3);
 
     intg.set_sd(sd);
@@ -267,7 +269,7 @@ TEST(IntegratorTest, SetSD){
 
 TEST(IntegratorTest, SetAccel){
     Particle p;
-    Integrator intg(p, 0.5, 0.01);
+    Integrator intg(p, 0.5,5, 0.01);
 
     intg.set_accel(simDat_accel);
 

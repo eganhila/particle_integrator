@@ -66,5 +66,13 @@ bool Integrator::integrate_step(){
 
 
 bool Integrator::integrate(){
-    return true;
+    bool success = true;
+
+    while(t<t_final){
+        integrate_step();
+        
+        //check if still in bounds
+    }
+
+    return success;
 }
