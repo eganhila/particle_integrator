@@ -63,7 +63,9 @@ TEST(AccelerationTests, SimDat_Zero){
     SimDat sd(3);
     setupFakeSD(sd);
 
-    for (int i=0; i<6; i++){p.state[i]= 0;}
+    for (int i=0; i<3; i++){
+        p.state[i]= 1;
+        p.state[i+3] = 0;}
 
     simDat_accel(p, sd, acc);
 
@@ -80,10 +82,12 @@ TEST(AccelerationTests, SimDat_ConstBz){
     SimDat sd(3);
     int d = 3;
 
-    for (int i=0; i<6; i++){p.state[i]= 0;}
+    for (int i=0; i<3; i++){p.state[i]= 1;}
     p.state[3] = 1;
+    p.state[4] = 0;
     p.state[5] = 3;
 
+    setupFakeSD(sd);
     for (int i=0; i<27; i++){
         sd.Bx[i] = 0;
         sd.By[i] = 0;
@@ -108,7 +112,7 @@ TEST(AccelerationTests, SimDat_ConstBz){
 TEST(IntegratorTest, IntegrateStationary){
     Particle p;
     for (int i=0; i<6; i++){ p.state[i] = 0;}
-    Integrator intg(p, 1,5, 2);
+    Integrator intg(p, 1,5, 1);
     intg.set_accel(constBz_accel);
 
     intg.integrate();
@@ -276,6 +280,7 @@ TEST(IntegratorTest, ConstructorIntegers){
     EXPECT_EQ(intg.t_final, 4);
     EXPECT_EQ(intg.particle->state[0], 0);
     EXPECT_EQ(intg.particle->state[4], 4);
+    EXPECT_EQ(intg.has_sd, false);
 
 }
 
@@ -300,6 +305,7 @@ TEST(IntegratorTest, SetSD){
     intg.set_sd(sd);
 
     EXPECT_EQ(intg.sd, &sd);
+    EXPECT_EQ(intg.has_sd, true);
 }
 
 TEST(IntegratorTest, SetAccel){

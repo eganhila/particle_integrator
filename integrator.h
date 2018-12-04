@@ -14,10 +14,12 @@ class Integrator {
         float dt;
         Particle * particle;
         SimDat * sd = NULL;
+        bool has_sd = false;
         void (*acc_func)(const Particle & particle, const SimDat &sd, float * acc) = NULL;
 
 
         void set_sd(SimDat & new_sd){ sd = &new_sd;
+            has_sd = true;
             }
         
         void set_accel(void new_acc_func(const Particle & particle, const SimDat &sd, float * acc)){acc_func = new_acc_func;}
