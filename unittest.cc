@@ -165,6 +165,70 @@ TEST(IntegratorTest, EvaluateDerivSmallDt){
 }
 
 
+TEST(IntegratorTest, EvaluateDerivDin){
+
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 0;}
+    p.state[3] = 1;
+    p.state[5] = 3;
+    Integrator intg(p, 1, 0.5);
+    intg.set_accel(constBz_accel);
+
+    float d_in[6]={1,0,0,1,0,0}, d_out[6];
+
+    intg.evaluate_derivative(2, 1, d_in, d_out);
+
+    EXPECT_EQ(d_out[0], 2);
+    EXPECT_EQ(d_out[1], 0);
+    EXPECT_EQ(d_out[2], 3);
+    EXPECT_EQ(d_out[3], 0);
+    EXPECT_EQ(d_out[4], 4);
+    EXPECT_EQ(d_out[5], 0);
+}
+
+TEST(IntegratorTest, RK4MethodLinear){
+
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 0;}
+    p.state[3] = 1;
+    p.state[5] = 3;
+    Integrator intg(p, 0, 1);
+    intg.set_accel(constBz_accel);
+
+    intg.integrate_step();
+
+
+    EXPECT_FLOAT_EQ(p.state[0], 1.0f/3.0f);
+    EXPECT_FLOAT_EQ(p.state[1], 2.0f/3.0f);
+    EXPECT_FLOAT_EQ(p.state[2], 3);
+    EXPECT_FLOAT_EQ(p.state[3], -1/3.0f);
+    EXPECT_FLOAT_EQ(p.state[4], 2.0f/3.0f);
+    EXPECT_FLOAT_EQ(p.state[5], 3.0);
+    EXPECT_FLOAT_EQ(intg.t, 1);
+
+}
+TEST(IntegratorTest, RK4MethodLinearSmallDt){
+
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 0;}
+    p.state[3] = 1;
+    p.state[5] = 3;
+    Integrator intg(p, 0, 0.5);
+    intg.set_accel(constBz_accel);
+
+    intg.integrate_step();
+
+
+    EXPECT_FLOAT_EQ(p.state[0], 5.0f/12.0f);
+    EXPECT_FLOAT_EQ(p.state[1], 11.0f/48.0f);
+    EXPECT_FLOAT_EQ(p.state[2], 1.5);
+    EXPECT_FLOAT_EQ(p.state[3], 13.0f/24.0);
+    EXPECT_FLOAT_EQ(p.state[4], 5.0f/6.0f);
+    EXPECT_FLOAT_EQ(p.state[5], 3.0);
+
+    EXPECT_EQ(intg.t, 0.5);
+}
+
 
 TEST(IntegratorTest, ConstructorIntegers){
     Particle p;

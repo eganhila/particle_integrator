@@ -28,6 +28,7 @@ class Integrator {
 
         void evaluate_derivative(double t, float dt, const float * d_in,  float * d_out);
         bool integrate_step();
+        bool integrate();
 };
 
 

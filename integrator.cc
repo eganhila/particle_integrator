@@ -3,6 +3,7 @@
 #include "sim_dat.h"
 #include "interpolate.h"
 #include <stddef.h>
+#include <iostream>
 
 
 
@@ -39,25 +40,31 @@ void Integrator::evaluate_derivative(
 bool Integrator::integrate_step(){
 
     bool success = true;
-    float  d0[6] = {0,0,0,0,0,0},d1[6],d2[6],d3[6], d4[6];//,k;
-    //for (int i =0; i<3; i++){
-    //  k.d[i] = particle.state[3+i];
-    //  k.d[3+i] = acceleration(particle, t, i);
-        //}/
+    float  d0[6] = {0,0,0,0,0,0},d1[6],d2[6],d3[6], d4[6], temp[6];
 
     //This needs to be double checked b/c edited eval deriv func
-    evaluate_derivative( t, 0.0f, d0, d1);
-    evaluate_derivative( t+dt*0.5f, dt*0.5f, d1,  d2);
-    evaluate_derivative( t+dt*0.5f, dt*0.5f, d2, d3);
+    evaluate_derivative( t, dt, d0, d1);
+    
+    for (int i=0; i<6; i++){temp[i] = d1[i]/2.0;}
+    evaluate_derivative( t+dt*0.5f, dt, temp,  d2);
+
+    for (int i=0; i<6; i++){temp[i] = d2[i]/2.0;}
+    evaluate_derivative( t+dt*0.5f, dt, temp, d3);
+
     evaluate_derivative( t+dt, dt, d3,  d4);
 
     float ddt[6];
 
     for (int i =0; i<6; i++){
         ddt[i] = 1.0f/6.0f* (d1[i]+2.0f* (d2[i]+d3[i])+d4[i]);
-        particle->state[i] = particle->state[i] + ddt[i] * dt;
+        particle->state[i] = particle->state[i] + ddt[i];
         }
+    t = t+dt;
 
     return success;
 }
 
+
+bool Integrator::integrate(){
+    return true;
+}
