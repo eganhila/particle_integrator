@@ -49,6 +49,9 @@ struct SimDat {
     float * Bx,* By, * Bz;
     float * Ex,* Ey, * Ez;
     float * x, * y, * z;
+    float bbox[6];
+
+    void set_bounds();
 };
 
 int read_simulation_data(SimDat& sd, const char* file_name);

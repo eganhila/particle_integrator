@@ -1,5 +1,6 @@
 #include "interpolate.h"
 #include "sim_dat.h"
+#include <iostream>
 void LinearInterpolate(const float * c0, const float * c1, float xd, float * c){
     for (int i=0; i<6; i++){
         c[i] = c0[i]*(1-xd)+c1[i]*xd;
@@ -65,7 +66,6 @@ void TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss){
     LinearInterpolate(c01, c11, yd, c1);
 
     LinearInterpolate(c0, c1, zd, pss);
-
 
 }
 

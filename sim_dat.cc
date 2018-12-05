@@ -51,5 +51,16 @@ int read_simulation_data(SimDat& sd, const char* file_name){
 
     status = H5Fclose (file);
 
+    sd.set_bounds();
+
     return 0;
+}
+
+void SimDat::set_bounds(){
+    bbox[0] = x[0];
+    bbox[1] = y[0];
+    bbox[2] = z[0];
+    bbox[3] = x[dim-1];
+    bbox[4] = y[dim-1];
+    bbox[5] = z[dim-1];
 }

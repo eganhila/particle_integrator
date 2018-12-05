@@ -4,6 +4,7 @@
 #include <iostream>
 #include "integrator.h"
 #include "sim_dat.h"
+#include "interpolate.h"
 
 
 void zero_accel(const Particle & particle, const SimDat &sd, float * acc){
@@ -28,9 +29,10 @@ void simDat_accel(const Particle & particle, const  SimDat &sd, float * acc){
     //Calc acceleration
     for (int i=0; i<3; i++){
         acc[i] = particle.charge * (
-                particle.state[3+(i+1)%3]*pss[(i+2)%3]+
+                -1*particle.state[3+(i+1)%3]*pss[(i+2)%3]+
                 particle.state[3+(i+2)%3]*pss[(i+1)%3])/particle.mass;
     }
+
 };
 
 

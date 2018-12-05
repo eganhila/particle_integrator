@@ -25,6 +25,24 @@ void setupFakeSD(SimDat & sd){
     }
 }
 
+void setupConstSD(SimDat & sd){
+    int d = sd.dim;
+    int d3 = d*d*d;
+        for (int i=0; i<(d3); i++){
+            sd.Bx[i] = 0;
+            sd.By[i] = 0;
+            sd.Bz[i] = 2;
+            sd.Ex[i] = 0;
+            sd.Ey[i] = 0;
+            sd.Ez[i] = 0;
+        }
+        for (int i=0; i<(d); i++){
+            sd.x[i] = -4+8.0*i/d;
+            sd.y[i] = -4+8.0*i/d;
+            sd.x[i] = -4+8.0*i/d;
+        }
+        sd.set_bounds();
+}
 //------------------------ ACCELERATION TESTS-----------------------------///
 
 TEST(AccelerationTests, ConstBz_Zero){
@@ -143,6 +161,73 @@ TEST(IntegratorTest, IntegrateLinear){
     EXPECT_FLOAT_EQ(p.state[4], 1);
     EXPECT_FLOAT_EQ(p.state[5], 1);
 }
+
+TEST(IntegratorTest, IntegrateConstBzAcc){
+    Particle p;
+    p.state[0] = 0;
+    p.state[1] = 0;
+    p.state[2] = 0;
+    p.state[3] = 0;
+    p.state[4] = 1;
+    p.state[5] = 0;
+    Integrator intg(p, 1,5, 0.01);
+    intg.set_accel(constBz_accel);
+
+    intg.integrate();
+
+    EXPECT_FLOAT_EQ(p.state[0], -0.57274985);
+    EXPECT_FLOAT_EQ(p.state[1], 0.49467942);
+    EXPECT_FLOAT_EQ(p.state[2], 0);
+    EXPECT_FLOAT_EQ(p.state[3], -0.98935884);
+    EXPECT_FLOAT_EQ(p.state[4], -0.14550011);
+    EXPECT_FLOAT_EQ(p.state[5], 0);
+}
+
+TEST(IntegratorTest, IntegrateStationarySimdat){
+    Particle p;
+    for (int i=0; i<6; i++){ p.state[i] = 0;}
+    Integrator intg(p, 1,5, 1);
+    intg.set_accel(simDat_accel);
+    SimDat sd(3);
+    setupFakeSD(sd);
+    intg.set_sd(sd);
+
+    intg.integrate();
+
+    EXPECT_FLOAT_EQ(intg.t_final, 5);
+    EXPECT_FLOAT_EQ(p.state[0], 0);
+    EXPECT_FLOAT_EQ(p.state[1], 0);
+    EXPECT_FLOAT_EQ(p.state[2], 0);
+    EXPECT_FLOAT_EQ(p.state[3], 0);
+    EXPECT_FLOAT_EQ(p.state[4], 0);
+    EXPECT_FLOAT_EQ(p.state[5], 0);
+
+}
+
+TEST(IntegratorTest, IntegrateConstBzAccSimDat){
+    Particle p;
+    p.state[0] = 0;
+    p.state[1] = 0;
+    p.state[2] = 0;
+    p.state[3] = 0;
+    p.state[4] = 1;
+    p.state[5] = 0;
+    Integrator intg(p, 1,5, 0.01);
+    SimDat sd(20);
+    setupConstSD(sd);
+    intg.set_sd(sd);
+
+    intg.set_accel(simDat_accel);
+    intg.integrate();
+
+    EXPECT_FLOAT_EQ(p.state[0], -0.57274985);
+    EXPECT_FLOAT_EQ(p.state[1], 0.49467942);
+    EXPECT_FLOAT_EQ(p.state[2], 0);
+    EXPECT_FLOAT_EQ(p.state[3], -0.98935884);
+    EXPECT_FLOAT_EQ(p.state[4], -0.14550011);
+    EXPECT_FLOAT_EQ(p.state[5], 0);
+}
+
 
 TEST(IntegratorTest, EvaluateDerivZero){
     Particle p;
