@@ -30,7 +30,7 @@ void simDat_accel(const Particle & particle, const  SimDat &sd, float * acc){
     for (int i=0; i<3; i++){
         acc[i] = particle.charge * (
                 -1*particle.state[3+(i+1)%3]*pss[(i+2)%3]+
-                particle.state[3+(i+2)%3]*pss[(i+1)%3])/particle.mass;
+                particle.state[3+(i+2)%3]*pss[(i+1)%3]+pss[3+i])/particle.mass;
     }
 
 };

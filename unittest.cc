@@ -24,6 +24,25 @@ void setupFakeSD(SimDat & sd){
         sd.z[i] = i+1;
     }
 }
+void setupZeroEFakeSD(SimDat & sd){
+    int i,j,k,d=sd.dim, idx;
+
+    for (i=0;i<d;i++){
+        for (j=0;j<d;j++){
+            for (k=0;k<d;k++){
+                idx = i*d*d+j*d+k;
+                sd.Bx[idx] = i;
+                sd.By[idx] = j;
+                sd.Bz[idx] = k;
+                sd.Ex[idx] = 0;
+                sd.Ey[idx] = 0;
+                sd.Ez[idx] = 0;
+            }}
+        sd.x[i] = i;
+        sd.y[i] = i/2.0;
+        sd.z[i] = i+1;
+    }
+}
 
 void setupConstSD(SimDat & sd){
     int d = sd.dim;
@@ -79,7 +98,7 @@ TEST(AccelerationTests, SimDat_Zero){
     Particle p;
     float acc[3];
     SimDat sd(3);
-    setupFakeSD(sd);
+    setupZeroEFakeSD(sd);
 
     for (int i=0; i<3; i++){
         p.state[i]= 1;
@@ -189,18 +208,19 @@ TEST(IntegratorTest, IntegrateStationarySimdat){
     Integrator intg(p, 1,5, 1);
     intg.set_accel(simDat_accel);
     SimDat sd(3);
-    setupFakeSD(sd);
+    setupZeroEFakeSD(sd);
     intg.set_sd(sd);
 
     intg.integrate();
 
+    //having trouble comparing floats very near zero, so added 1
     EXPECT_FLOAT_EQ(intg.t_final, 5);
-    EXPECT_FLOAT_EQ(p.state[0], 0);
-    EXPECT_FLOAT_EQ(p.state[1], 0);
-    EXPECT_FLOAT_EQ(p.state[2], 0);
-    EXPECT_FLOAT_EQ(p.state[3], 0);
-    EXPECT_FLOAT_EQ(p.state[4], 0);
-    EXPECT_FLOAT_EQ(p.state[5], 0);
+    EXPECT_FLOAT_EQ(p.state[0]+1,1);
+    EXPECT_FLOAT_EQ(p.state[1]+1,1);
+    EXPECT_FLOAT_EQ(p.state[2]+1,1);
+    EXPECT_FLOAT_EQ(p.state[3]+1,1);
+    EXPECT_FLOAT_EQ(p.state[4]+1,1);
+    EXPECT_FLOAT_EQ(p.state[5]+1,1);
 
 }
 

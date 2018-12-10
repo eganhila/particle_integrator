@@ -36,10 +36,10 @@ int read_simulation_data(SimDat& sd, const char* file_name){
     status = H5Dclose (dsety);
     status = H5Dclose (dsetz);
     
-    //E field THIS IS A PLACEHOLDER, NEED TO ACTUAL CALCULATE
-    dsetx = H5Dopen (file, "electron_velocity_x", H5P_DEFAULT);
-    dsety = H5Dopen (file, "electron_velocity_y", H5P_DEFAULT);
-    dsetz = H5Dopen (file, "electron_velocity_z", H5P_DEFAULT);
+    // COntinue to make sure this is in correct units as updated
+    dsetx = H5Dopen (file, "electric_field_x", H5P_DEFAULT);
+    dsety = H5Dopen (file, "electric_field_y", H5P_DEFAULT);
+    dsetz = H5Dopen (file, "electric_field_z", H5P_DEFAULT);
 
     status = H5Dread(dsetx, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ex);
     status = H5Dread(dsety, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ey);

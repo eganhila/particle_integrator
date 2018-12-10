@@ -25,7 +25,7 @@ void setupConstSD(SimDat & sd){
 int main(){
 
     Particle p;
-    p.state[0] = 2.5;
+    p.state[0] = 2.5*3390;
     p.state[1] = 0;
     p.state[2] = 0;
     p.state[3] = -1;

@@ -61,7 +61,7 @@ bool Integrator::integrate_step(){
         }
     t = t+dt;
 
-    std::cout << particle->state[0]<<" " << particle->state[3]<<"\n";
+    //std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
     return success;
 }
 
@@ -77,8 +77,8 @@ bool Integrator::integrate(){
         if (has_sd) {
             
             for (int axis=0; axis<3; axis++){
-                if ((particle->state[axis]+particle->state[3+axis]*dt < sd->bbox[axis]) || 
-                    (particle->state[axis]+particle->state[3+axis]*dt > sd->bbox[axis+3])){
+                if ((particle->state[axis]+2*particle->state[3+axis]*dt < sd->bbox[axis]) || 
+                    (particle->state[axis]+2*particle->state[3+axis]*dt > sd->bbox[axis+3])){
                     within_box = false;
                     }
             }
