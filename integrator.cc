@@ -54,6 +54,11 @@ bool Integrator::integrate_step(){
     evaluate_derivative( t+dt, dt, d3,  d4);
 
     float ddt[6];
+    /*
+    for (int i =0; i<3; i++){
+        ddt[i] = 1.0f/6.0f* (d1[i]+2.0f* (d2[i]+d3[i])+d4[i]);
+        std::cout << i<<": "<< particle->state[i]<<", "<< ddt[i] <<", "<< particle->state[i+3]<<", "<<ddt[i+3]<<std::endl; 
+    }*/
 
     for (int i =0; i<6; i++){
         ddt[i] = 1.0f/6.0f* (d1[i]+2.0f* (d2[i]+d3[i])+d4[i]);
@@ -61,29 +66,44 @@ bool Integrator::integrate_step(){
         }
     t = t+dt;
 
-    //std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
+
+    std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
     return success;
+}
+
+int Integrator::evaluate_bcs(){
+    float planet_r2 = 3390.0*3390.0, particle_r2;
+
+    for (int axis=0; axis<3; axis++){
+        if ((particle->state[axis]+2*particle->state[3+axis]*dt < sd->bbox[axis]) || 
+            (particle->state[axis]+2*particle->state[3+axis]*dt > sd->bbox[axis+3])){
+            return 1;
+            }
+    }
+    particle_r2 = particle->state[0]*particle->state[0]+
+                  particle->state[1]*particle->state[1]+ 
+                  particle->state[2]*particle->state[2]; 
+
+    if (particle_r2 < planet_r2){return 2;}
+
+    return 0;
+
 }
 
 
 bool Integrator::integrate(){
     bool success = true;
-    bool within_box = true;
+    int pstatus = 0;
 
-    while((t<t_final)&& within_box){
+    while((t<t_final)){
         integrate_step();
         
         //check if still in bounds
         if (has_sd) {
-            
-            for (int axis=0; axis<3; axis++){
-                if ((particle->state[axis]+2*particle->state[3+axis]*dt < sd->bbox[axis]) || 
-                    (particle->state[axis]+2*particle->state[3+axis]*dt > sd->bbox[axis+3])){
-                    within_box = false;
-                    }
-            }
+           pstatus = evaluate_bcs(); 
+           if (pstatus != 0){ break;}
         }
     }
-
+    std::cout<<"# particle status: "<<pstatus<<std::endl;
     return success;
 }

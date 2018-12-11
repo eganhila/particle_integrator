@@ -31,6 +31,7 @@ class Integrator {
         void evaluate_derivative(float t, float dt, const float * d_in,  float * d_out);
         bool integrate_step();
         bool integrate();
+        int evaluate_bcs();
 };
 
 
