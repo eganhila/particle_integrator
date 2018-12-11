@@ -28,7 +28,8 @@ void simDat_accel(const Particle & particle, const  SimDat &sd, float * acc){
 
     //Calc acceleration
     for (int i=0; i<3; i++){
-        acc[i] = particle.charge * (
+        //factor for Z/mu and m -> km
+        acc[i] = 0.09572*particle.charge * (
                 -1*particle.state[3+(i+1)%3]*pss[(i+2)%3]+
                 particle.state[3+(i+2)%3]*pss[(i+1)%3]+pss[3+i])/particle.mass;
     }
