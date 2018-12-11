@@ -36,7 +36,6 @@ int read_simulation_data(SimDat& sd, const char* file_name){
     status = H5Dclose (dsety);
     status = H5Dclose (dsetz);
     
-    // COntinue to make sure this is in correct units as updated
     dsetx = H5Dopen (file, "electric_field_x", H5P_DEFAULT);
     dsety = H5Dopen (file, "electric_field_y", H5P_DEFAULT);
     dsetz = H5Dopen (file, "electric_field_z", H5P_DEFAULT);

@@ -25,18 +25,18 @@ void setupConstSD(SimDat & sd){
 int main(){
 
     Particle p;
-    p.state[0] = 2.5*3390;
+    p.state[0] = 1.2*3390;
     p.state[1] = 0;
     p.state[2] = 0;
-    p.state[3] = -1;
+    p.state[3] = 0;
     p.state[4] = 0;
     p.state[5] = 0;
 
-    Integrator intg(p, 1,5, 0.01);
+    Integrator intg(p, 1,100, 0.1);
 
     SimDat sd(120);
     //setupConstSD(sd);
-    read_simulation_data(sd, "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_0nT.h5");
+    read_simulation_data(sd, "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_50nT_Eint.h5");
     intg.set_sd(sd);
 
     intg.set_accel(simDat_accel);
