@@ -1,4 +1,5 @@
 *.swp
+*.h5
 *.o
 ptest
 pinter

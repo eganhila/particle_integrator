@@ -67,7 +67,7 @@ bool Integrator::integrate_step(){
     t = t+dt;
 
 
-    std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
+    //std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
     return success;
 }
 
@@ -91,8 +91,7 @@ int Integrator::evaluate_bcs(){
 }
 
 
-bool Integrator::integrate(){
-    bool success = true;
+int Integrator::integrate(){
     int pstatus = 0;
 
     while((t<t_final)){
@@ -104,6 +103,5 @@ bool Integrator::integrate(){
            if (pstatus != 0){ break;}
         }
     }
-    std::cout<<"# particle status: "<<pstatus<<std::endl;
-    return success;
+    return pstatus;
 }
