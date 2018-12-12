@@ -7,12 +7,13 @@
 
 
 
-void Integrator::evaluate_derivative( 
+bool Integrator::evaluate_derivative( 
                      float t, 
                      float dt, 
                      const float * d_in,
                      float * d_out){
     float * y_n = particle->state;
+    bool success;
     Particle temp;
 
     //make fake particle at propper time
@@ -29,11 +30,14 @@ void Integrator::evaluate_derivative(
 
 
     //Use fake particle to calc velocity space deriv
-    acc_func(temp, *sd,  &d_out[3]);
+    success = acc_func(temp, *sd,  &d_out[3]);
+    if (!success){return false;}
 
     for (int i=0;i<3;i++){
         d_out[3+i] = d_out[3+i]*dt;
     }
+
+    return true;
 }
 
 
@@ -43,15 +47,19 @@ bool Integrator::integrate_step(){
     float  d0[6] = {0,0,0,0,0,0},d1[6],d2[6],d3[6], d4[6], temp[6];
 
     //This needs to be float checked b/c edited eval deriv func
-    evaluate_derivative( t, dt, d0, d1);
+    success = evaluate_derivative( t, dt, d0, d1);
+    if (!success) {return false;}
     
     for (int i=0; i<6; i++){temp[i] = d1[i]/2.0;}
-    evaluate_derivative( t+dt*0.5f, dt, temp,  d2);
+    success = evaluate_derivative( t+dt*0.5f, dt, temp,  d2);
+    if (!success) {return false;}
 
     for (int i=0; i<6; i++){temp[i] = d2[i]/2.0;}
-    evaluate_derivative( t+dt*0.5f, dt, temp, d3);
+    success = evaluate_derivative( t+dt*0.5f, dt, temp, d3);
+    if (!success) {return false;}
 
-    evaluate_derivative( t+dt, dt, d3,  d4);
+    success = evaluate_derivative( t+dt, dt, d3,  d4);
+    if (!success) {return false;}
 
     float ddt[6];
     /*
@@ -93,9 +101,15 @@ int Integrator::evaluate_bcs(){
 
 int Integrator::integrate(){
     int pstatus = 0;
+    bool success;
+
 
     while((t<t_final)){
-        integrate_step();
+        success = integrate_step();
+        if (!success){
+            pstatus = -1;
+            break;
+        }
         
         //check if still in bounds
         if (has_sd) {

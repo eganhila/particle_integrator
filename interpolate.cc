@@ -7,7 +7,7 @@ void LinearInterpolate(const float * c0, const float * c1, float xd, float * c){
     }
 }
 
-void getCellIdx(const SimDat & sd, const float * pos, int *idx){
+bool getCellIdx(const SimDat & sd, const float * pos, int *idx){
     // Find cell we are in
     int i0=0, j0=0, k0=0; //leftmost corner
 
@@ -24,12 +24,18 @@ void getCellIdx(const SimDat & sd, const float * pos, int *idx){
     idx[0] = i0-1;
     idx[1] = j0-1;
     idx[2] = k0-1;
+
+    if ((i0>=sd.dim) || (j0>=sd.dim) || k0>=sd.dim){return false;}
+
+    return true;
 }
 
-void TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss){
+bool TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss){
 
     int idx[3];
-    getCellIdx(sd, pos, idx);
+
+    if (!getCellIdx(sd, pos, idx)){return false;} 
+
 
     //Find distance to cell
     float xd,yd,zd;
@@ -67,5 +73,6 @@ void TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss){
 
     LinearInterpolate(c0, c1, zd, pss);
 
+    return true;
 }
 

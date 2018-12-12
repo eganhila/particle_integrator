@@ -114,7 +114,6 @@ void SimController :: run(){
                 velocities[p_idx+i*N_particles] = p.state[i+3];
             }
 
-            p.print();
 
             //Setup integrator
             Integrator intg(p, 1,100, 0.1);
@@ -195,12 +194,18 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 }
 
 bool SimController :: eval_cell(int cell_idx){
+    bool evaluate = true;
+    float x,y,z,r;
+    x = sd->x[cell_idx];
+    y = sd->y[cell_idx];
+    z = sd->z[cell_idx];
+    r = pow(x*x+y*y+z*z,0.5)/3390.0;
 
-    //For now we're just going to evaluate a single cell
-//    if (cell_idx == 0){ return true;}
-    if (cell_idx == 348937){ return true;}
+    //want < 2.5 RM, > 1 RM
+    if (r > 1.5){evaluate=false;}
+    if (r < 1){evaluate=false;}
     
-    return false;
+    return evaluate;
 }
 
 void SimController :: set_particle_pop(float mass, float charge, float temperature){

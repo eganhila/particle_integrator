@@ -4,7 +4,7 @@
 #define INTERPOLATE_H
 
 void LinearInterpolate(const float * c0, const float * c1, float xd, float * c);
-void TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss);
-void getCellIdx(const SimDat & sd, const float * pos, int *idx);
+bool TrilinearInterpolate(const float * pos, const SimDat & sd, float * pss);
+bool getCellIdx(const SimDat & sd, const float * pos, int *idx);
 
 #endif /* INTERPOLATE_H */
