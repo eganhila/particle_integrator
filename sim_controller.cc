@@ -5,36 +5,71 @@
 #include <random>
 #include <iostream>
 #include "hdf5.h"
+#include <math.h>
+
 #define FILE "dset.h5"
 
+float inv_maxwell_cdf(float v, float a){
+    return erf(v/(pow(2,0.5)*a))- pow(2/M_PI, 0.5)*(v*exp(-1*v*v/(2*a*a)))/a;
 
-Particle SimController :: draw_particle(){
-    //Chapman initial pop
+}
 
-    /*float x, y, z, H, a0, a1, a, R0;
+
+Particle SimController :: draw_particle(int cell_idx){
+
+    float x, y, z, x0,y0,z0,vx,vy,vz,u,v;
     float noon_f=1.0, night_f=0.1;
+
+    // Get base position
+    x0 = sd->x[cell_idx];
+    y0 = sd->y[cell_idx];
+    z0 = sd->z[cell_idx];
 
     //setup randoming
     std::random_device rd;
     std::mt19937 e2(rd());
     std::uniform_real_distribution<> uniform_dist(0, 1);
 
-    // 2.213 km/K assuming all mars things
-    H = 2.213*pop_t/pop_m;
+    //Spatially distributed uniformly in cell
+    x = x0 + (uniform_dist(e2)-0.5)*sd->dx;
+    y = y0 + (uniform_dist(e2)-0.5)*sd->dx;
+    z = z0 + (uniform_dist(e2)-0.5)*sd->dx;
 
 
-    x = uniform_dist(e2);
-    y = uniform_dist(e2);
-    z = uniform_dist(e2);
-    */
+    //draw 3 random components and normalize to
+    //  get uniformly distributed normalized
+    //  velocity vector
+    vx = uniform_dist(e2);
+    vy = uniform_dist(e2);
+    vz = uniform_dist(e2);
+
+    v = pow(vx*vx+vy*vy+vz*vz,0.5);
+    vx = vx/v;
+    vy = vy/v;
+    vz = vz/v;
+
+    //Now want to draw speed from maxwellian
+    //  distribution using inverse random sampling
+    //  and scale velocity vector to maxwell speed
+    //  90.82e-3 factor from sqrt(kT/mu mH) into km/s
+
+    u = uniform_dist(e2);
+    v = inv_maxwell_cdf(u, 90.82e-3*pow(pop_T/pop_m,0.5));
+
+    vx = vx*v;
+    vy = vy*v;
+    vz = vx*v;
+
 
     Particle p;
-     p.state[0] = 1.2*3390;
-    p.state[1] = 0;
-    p.state[2] = 0;
-    p.state[3] = 0;
-    p.state[4] = 0;
-    p.state[5] = 0;
+    p.state[0] = x;
+    p.state[1] = y;
+    p.state[2] = z;
+    p.state[3] = vx;
+    p.state[4] = vy;
+    p.state[5] = vz;
+    p.mass = pop_m; 
+    p.charge = pop_q;
     return p;
 }
 
@@ -71,7 +106,7 @@ void SimController :: run(){
 
             Particle p;
             //draw particle from distribution
-            p = draw_particle();
+            p = draw_particle(cell_idx);
             cell_particles[p_idx]=p;
 
             //store init particle state
@@ -80,6 +115,7 @@ void SimController :: run(){
                 velocities[p_idx+i*N_particles] = p.state[i+3];
             }
 
+            p.print();
 
             //Setup integrator
             Integrator intg(p, 1,100, 0.1);
@@ -135,7 +171,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
     //create/close dataspace, dataset, write data, for init location
     sprintf(dset_name, "%s/position", sidx);
     dataspace_id = H5Screate_simple(2, dims2D, NULL);
-    dataset_id = H5Dcreate2(file_id, dset_name, H5T_STD_I32BE,
+    dataset_id = H5Dcreate2(file_id, dset_name, H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                       positions);
@@ -146,7 +182,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
     //create/close dataspace, dataset, write data, for init velocity
     sprintf(dset_name, "%s/velocity", sidx);
     dataspace_id = H5Screate_simple(2, dims2D, NULL);
-    dataset_id = H5Dcreate2(file_id, dset_name, H5T_STD_I32BE,
+    dataset_id = H5Dcreate2(file_id, dset_name, H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
                       velocities);
@@ -162,7 +198,8 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 bool SimController :: eval_cell(int cell_idx){
 
     //For now we're just going to evaluate a single cell
-    if (cell_idx == 0){ return true;}
+//    if (cell_idx == 0){ return true;}
+    if (cell_idx == 348937){ return true;}
     
     return false;
 }

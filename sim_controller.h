@@ -14,7 +14,7 @@ class SimController {
         int N_particles;
         Particle * init_pop;
 
-    Particle draw_particle();
+    Particle draw_particle(int cell_idx);
     void run();
     void write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status);
     void set_particle_pop(float mass, float charge, float temperature);

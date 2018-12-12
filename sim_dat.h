@@ -50,6 +50,7 @@ struct SimDat {
     float * Ex,* Ey, * Ez;
     float * x, * y, * z;
     float bbox[6];
+    float dx;
 
     void set_bounds();
 };

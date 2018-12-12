@@ -62,4 +62,6 @@ void SimDat::set_bounds(){
     bbox[3] = x[dim-1];
     bbox[4] = y[dim-1];
     bbox[5] = z[dim-1];
+
+    dx=(x[dim-1]-x[0])/dim;
 }
