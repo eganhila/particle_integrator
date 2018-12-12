@@ -2,10 +2,18 @@
 #define INTEGRATOR_H
 
 #include "sim_dat.h"
+#include <iostream>
 struct Particle{
         float state[6];
         float mass=1;     
         float charge=1;
+
+        void print(){
+            std::cout<<"Particle: ["<<state[0]<<", "<<state[1];
+            std::cout<<", "<<state[2]<<", "<<state[3];
+            std::cout<<", "<<state[4]<<", "<<state[5]<<"] ";
+            std::cout<<", q: "<<charge<<", mu: "<<mass<<std::endl;
+        }
 };
 
 class Integrator {
