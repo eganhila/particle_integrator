@@ -5,17 +5,20 @@
 #include "integrator.h"
 
 class SimController {
-    public:
-        int N_particles;
+    private:
+        float pop_m, pop_q, pop_T;
         SimDat * sd = NULL;
         float t_final, dt;
-        bool created_particles=false;
+        bool created_particles=false, pop_set=false;
+    public:
+        int N_particles;
         Particle * init_pop;
 
-    void setup();
-    void draw_init_pop();
+    Particle draw_particle();
     void run();
-    void write_out();
+    void write_cell_data(Particle * cell_particles, int * all_status);
+    void set_particle_pop(float mass, float charge, float temperature);
+    bool eval_cell(int cell_idx);
 
 
     SimController(int new_N_particles, 

@@ -8,7 +8,7 @@ struct SimDat {
 
     SimDat(int new_dim){
         dim = new_dim;
-        int dim3 = dim*dim*dim;
+        dim3 = dim*dim*dim;
 
         x = new float[dim];
         y = new float[dim];
@@ -45,7 +45,7 @@ struct SimDat {
     }
 
 
-    int dim;
+    int dim, dim3;
     float * Bx,* By, * Bz;
     float * Ex,* Ey, * Ez;
     float * x, * y, * z;
