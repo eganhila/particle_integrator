@@ -7,7 +7,6 @@
 #include "hdf5.h"
 #include <math.h>
 
-#define FILE "dset.h5"
 
 float inv_maxwell_cdf(float v, float a){
     return erf(v/(pow(2,0.5)*a))- pow(2/M_PI, 0.5)*(v*exp(-1*v*v/(2*a*a)))/a;
@@ -83,7 +82,7 @@ void SimController :: run(){
     herr_t      status;
 
     /* Create a new file using default properties. */
-    file_id = H5Fcreate(FILE, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate(outname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Fclose(file_id);
 
     // Setup data structures that we will
@@ -154,7 +153,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
     sprintf(sidx, "%010d", cell_idx);
 
     // open existing file
-    file_id = H5Fopen(FILE, H5F_ACC_RDWR, H5P_DEFAULT);
+    file_id = H5Fopen(outname, H5F_ACC_RDWR, H5P_DEFAULT);
     group = H5Gcreate (file_id, sidx, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     //create/close dataspace, dataset, write data, for status

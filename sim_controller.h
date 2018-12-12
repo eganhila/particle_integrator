@@ -13,6 +13,7 @@ class SimController {
     public:
         int N_particles;
         Particle * init_pop;
+        const char * outname;
 
     Particle draw_particle(int cell_idx);
     void run();
@@ -24,9 +25,10 @@ class SimController {
     SimController(int new_N_particles, 
                   float new_t_final,
                   float new_dt,
-                  SimDat & new_sd) :
+                  SimDat & new_sd,
+                  const char * new_outname) :
         N_particles(new_N_particles), t_final(new_t_final),
-        dt(new_dt), sd(&new_sd){}
+        dt(new_dt), sd(&new_sd), outname(new_outname){}
 
     ~SimController(){
         if (created_particles){

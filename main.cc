@@ -12,8 +12,8 @@ int main(){
             "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_50nT_Eint.h5");
 
 
-    SimController sc(10, 100, 0.01, sd);
-    sc.set_particle_pop(16, 1, 200);
+    SimController sc(10, 100, 0.01, sd, "pinter_output.h5");
+    sc.set_particle_pop(16, 1, 300);
     sc.run();
 
 
