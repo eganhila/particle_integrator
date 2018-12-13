@@ -81,9 +81,9 @@ void SimController :: run(){
     hid_t       file_id;   /* file identifier */
     herr_t      status;
 
+    std::cout<<"setting up"<<std::endl;
     /* Create a new file using default properties. */
-    file_id = H5Fcreate(outname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Fclose(file_id);
+    setup_datawriter();
 
     // Setup data structures that we will
     // keep re-using
@@ -91,6 +91,7 @@ void SimController :: run(){
     all_status = new int[N_particles];
     positions = new float[N_particles*3];
     velocities = new float[N_particles*3];
+
 
     // Iterate over all cells
     for (cell_idx=0; cell_idx<sd->dim3; cell_idx++){
@@ -139,57 +140,106 @@ void SimController :: run(){
 
 }
 
-void SimController :: write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status){
+void SimController :: setup_datawriter(){
     hid_t       file_id, dataset_id, dataspace_id, group;  /* identifiers */
-    hsize_t  dims1D[1], dims2D[2];
+    hsize_t  dims2D[2], dims3D[3];
     herr_t      status;
     char sidx[20], dset_name[30];
 
-    dims1D[0] = N_particles;
+    dims2D[0] = sd->dim3;
     dims2D[1] = N_particles;
-    dims2D[0] = 3;
 
-    sprintf(sidx, "%010d", cell_idx);
+    dims3D[0] = 3;
+    dims3D[1] = sd->dim3;
+    dims3D[2] = N_particles;
+
+    file_id = H5Fcreate(outname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    dataspace_id = H5Screate_simple(2, dims2D, NULL);
+    dataset_id = H5Dcreate2(file_id, "status", H5T_STD_I32BE,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+
+    dataspace_id = H5Screate_simple(3, dims3D, NULL);
+    dataset_id = H5Dcreate2(file_id, "position", H5T_NATIVE_FLOAT,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+    dataspace_id = H5Screate_simple(3, dims3D, NULL);
+    dataset_id = H5Dcreate2(file_id, "velocity", H5T_NATIVE_FLOAT,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+
+    status = H5Fclose(file_id);
+}
+
+void SimController :: write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status){
+    hid_t       file_id, dataset_id, dataspace_id, memspace_id;  /* identifiers */
+    hsize_t  dims2D[2], dims3D[3], offset2D[2], offset3D[3];
+    hsize_t stride[3] = {1,1,1}, block[3]={1,1,1};
+    herr_t      status;
+    char sidx[20], dset_name[30];
+
+    dims2D[0] = 1;
+    dims2D[1] = N_particles;
+
+    dims3D[0] = 3;
+    dims3D[1] = 1;
+    dims3D[2] = N_particles;
+
+    offset2D[0] = cell_idx;
+    offset2D[1] = 0;
+    offset3D[0] = 0;
+    offset3D[1] = cell_idx;
+    offset3D[2] = 0;
+
+
 
     // open existing file
     file_id = H5Fopen(outname, H5F_ACC_RDWR, H5P_DEFAULT);
-    group = H5Gcreate (file_id, sidx, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     //create/close dataspace, dataset, write data, for status
-    sprintf(dset_name, "%s/status", sidx);
-    dataspace_id = H5Screate_simple(1, dims1D, NULL);
-    dataset_id = H5Dcreate2(file_id, dset_name, H5T_STD_I32BE,
-                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Dwrite(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+    dataset_id = H5Dopen2(file_id, "status", H5P_DEFAULT);
+    memspace_id = H5Screate_simple(2,dims2D, NULL); 
+    dataspace_id = H5Dget_space (dataset_id);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset2D,
+                                 stride, dims2D, block);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_INT, memspace_id, dataspace_id, H5P_DEFAULT,
                       all_status);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
 
     //create/close dataspace, dataset, write data, for init location
-    sprintf(dset_name, "%s/position", sidx);
-    dataspace_id = H5Screate_simple(2, dims2D, NULL);
-    dataset_id = H5Dcreate2(file_id, dset_name, H5T_NATIVE_FLOAT,
-                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+    dataset_id = H5Dopen2(file_id, "position", H5P_DEFAULT);
+    memspace_id = H5Screate_simple(3,dims3D, NULL); 
+    dataspace_id = H5Dget_space (dataset_id);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
+                                 stride, dims3D, block);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
                       positions);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
 
     //create/close dataspace, dataset, write data, for init velocity
-    sprintf(dset_name, "%s/velocity", sidx);
-    dataspace_id = H5Screate_simple(2, dims2D, NULL);
-    dataset_id = H5Dcreate2(file_id, dset_name, H5T_NATIVE_FLOAT,
-                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT,
+    dataset_id = H5Dopen2(file_id, "velocity", H5P_DEFAULT);
+    memspace_id = H5Screate_simple(3,dims3D, NULL); 
+    dataspace_id = H5Dget_space (dataset_id);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
+                                 stride, dims3D, block);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
                       velocities);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
 
     //close group and file
-    status = H5Gclose(group);
     status = H5Fclose(file_id);
 }
 
@@ -202,8 +252,12 @@ bool SimController :: eval_cell(int cell_idx){
     r = pow(x*x+y*y+z*z,0.5)/3390.0;
 
     //want < 2.5 RM, > 1 RM
-    if (r > 1.5){evaluate=false;}
-    if (r < 1){evaluate=false;}
+//    if (r > 1.5){evaluate=false;}
+//    if (r < 1){evaluate=false;}
+
+    evaluate=false;
+    if (cell_idx==23979){evaluate=true;}
+    if (cell_idx==223749){evaluate=true;}
     
     return evaluate;
 }

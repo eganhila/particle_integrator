@@ -20,6 +20,7 @@ class SimController {
     void write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status);
     void set_particle_pop(float mass, float charge, float temperature);
     bool eval_cell(int cell_idx);
+    void setup_datawriter();
 
 
     SimController(int new_N_particles, 
