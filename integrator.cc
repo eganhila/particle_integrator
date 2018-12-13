@@ -74,8 +74,8 @@ bool Integrator::integrate_step(){
         }
     t = t+dt;
 
+    if (verbose){particle->print_state();}
 
-    //std::cout << particle->state[0]<<" " <<particle->state[1]<<" " <<particle->state[2]<<" " <<particle->state[3]<<" " << particle->state[4]<< " "<<particle->state[5] <<"\n";
     return success;
 }
 

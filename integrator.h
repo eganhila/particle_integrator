@@ -14,12 +14,18 @@ struct Particle{
             std::cout<<", "<<state[4]<<", "<<state[5]<<"] ";
             std::cout<<", q: "<<charge<<", mu: "<<mass<<std::endl;
         }
+        void print_state(){
+            std::cout<<state[0]<<", "<<state[1];
+            std::cout<<", "<<state[2]<<", "<<state[3];
+            std::cout<<", "<<state[4]<<", "<<state[5]<<std::endl;
+        }
 };
 
 class Integrator {
     public:
         float t0, t, t_final;
         float dt;
+        bool verbose=false;
         Particle * particle;
         SimDat * sd = NULL;
         bool has_sd = false;

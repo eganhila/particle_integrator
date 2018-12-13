@@ -1,4 +1,5 @@
 #include "sim_dat.h"
+#include "interpolate.h"
 #include "integrator.h"
 #include "sim_controller.h"
 #include "acceleration.h"
@@ -24,11 +25,14 @@ Particle SimController :: draw_particle(int cell_idx){
 
     float x, y, z, x0,y0,z0,vx,vy,vz,u,v;
     float noon_f=1.0, night_f=0.1;
+    int i,j,k;
+
+    reverse_cellidx(cell_idx, sd->dim, i,j,k);
 
     // Get base position
-    x0 = sd->x[cell_idx];
-    y0 = sd->y[cell_idx];
-    z0 = sd->z[cell_idx];
+    x0 = sd->x[i];
+    y0 = sd->y[j];
+    z0 = sd->z[k];
 
     //setup randoming
     std::random_device rd;
@@ -87,7 +91,6 @@ void SimController :: run(){
     hid_t       file_id;   /* file identifier */
     herr_t      status;
 
-    std::cout<<"setting up"<<std::endl;
     /* Create a new file using default properties. */
     setup_datawriter();
 
@@ -123,14 +126,14 @@ void SimController :: run(){
 
 
             //Setup integrator
-            Integrator intg(p, 1,100, 0.1);
+            Integrator intg(p, 0.0, t_final, dt);
             intg.set_sd(*sd);
             intg.set_accel(simDat_accel);
             
             //Particle integrated (work done here)
             all_status[p_idx] = intg.integrate();
-            
         }
+            
 
         // Write out cell
         write_cell_data(cell_idx, positions, velocities, all_status);
@@ -197,7 +200,6 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
     char sidx[20], dset_name[30];
 
     reverse_cellidx(cell_idx,sd->dim,i,j,k);
-    std::cout<<i<<", "<<j<<", "<<k<<std::endl;
     
 
     dims2D[0] = 1;
@@ -270,19 +272,20 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 bool SimController :: eval_cell(int cell_idx){
     bool evaluate = true;
     float x,y,z,r;
-    x = sd->x[cell_idx];
-    y = sd->y[cell_idx];
-    z = sd->z[cell_idx];
+    int i,j,k;
+
+    reverse_cellidx(cell_idx, sd->dim, i,j,k);
+
+    x = sd->x[i];
+    y = sd->y[j];
+    z = sd->z[k];
     r = pow(x*x+y*y+z*z,0.5)/3390.0;
 
     //want < 2.5 RM, > 1 RM
-//    if (r > 1.5){evaluate=false;}
-//    if (r < 1){evaluate=false;}
+    if (r > 1.5){evaluate=false;}
+    if (r < 1){evaluate=false;}
 
-    evaluate=false;
-    if (cell_idx==23979){evaluate=true;}
-    if (cell_idx==223749){evaluate=true;}
-    
+
     return evaluate;
 }
 
