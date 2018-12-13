@@ -7,6 +7,12 @@
 #include "hdf5.h"
 #include <math.h>
 
+void reverse_cellidx(int cellidx, int dim, int & i, int &j,  int &k){
+    i = cellidx/(dim*dim); 
+    j = cellidx%(dim*dim)/dim;
+    k = cellidx%(dim);
+}
+
 
 float inv_maxwell_cdf(float v, float a){
     return erf(v/(pow(2,0.5)*a))- pow(2/M_PI, 0.5)*(v*exp(-1*v*v/(2*a*a)))/a;
@@ -142,33 +148,37 @@ void SimController :: run(){
 
 void SimController :: setup_datawriter(){
     hid_t       file_id, dataset_id, dataspace_id, group;  /* identifiers */
-    hsize_t  dims2D[2], dims3D[3];
+    hsize_t  dims2D[4], dims3D[5];
     herr_t      status;
     char sidx[20], dset_name[30];
 
-    dims2D[0] = sd->dim3;
-    dims2D[1] = N_particles;
+    dims2D[0] = sd->dim;
+    dims2D[1] = sd->dim;
+    dims2D[2] = sd->dim;
+    dims2D[3] = N_particles;
 
     dims3D[0] = 3;
-    dims3D[1] = sd->dim3;
-    dims3D[2] = N_particles;
+    dims3D[1] = sd->dim;
+    dims3D[2] = sd->dim;
+    dims3D[3] = sd->dim;
+    dims3D[4] = N_particles;
 
     file_id = H5Fcreate(outname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
-    dataspace_id = H5Screate_simple(2, dims2D, NULL);
+    dataspace_id = H5Screate_simple(4, dims2D, NULL);
     dataset_id = H5Dcreate2(file_id, "status", H5T_STD_I32BE,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
 
-    dataspace_id = H5Screate_simple(3, dims3D, NULL);
+    dataspace_id = H5Screate_simple(5, dims3D, NULL);
     dataset_id = H5Dcreate2(file_id, "position", H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
-    dataspace_id = H5Screate_simple(3, dims3D, NULL);
+    dataspace_id = H5Screate_simple(5, dims3D, NULL);
     dataset_id = H5Dcreate2(file_id, "velocity", H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dclose(dataset_id);
@@ -180,23 +190,37 @@ void SimController :: setup_datawriter(){
 
 void SimController :: write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status){
     hid_t       file_id, dataset_id, dataspace_id, memspace_id;  /* identifiers */
-    hsize_t  dims2D[2], dims3D[3], offset2D[2], offset3D[3];
-    hsize_t stride[3] = {1,1,1}, block[3]={1,1,1};
+    hsize_t  dims2D[4], dims3D[5], offset2D[4], offset3D[5];
+    hsize_t stride[5] = {1,1,1,1,1}, block[5]={1,1,1,1,1};
     herr_t      status;
+    int i, j, k;
     char sidx[20], dset_name[30];
 
+    reverse_cellidx(cell_idx,sd->dim,i,j,k);
+    std::cout<<i<<", "<<j<<", "<<k<<std::endl;
+    
+
     dims2D[0] = 1;
-    dims2D[1] = N_particles;
+    dims2D[1] = 1;
+    dims2D[2] = 1;
+    dims2D[3] = N_particles;
 
     dims3D[0] = 3;
     dims3D[1] = 1;
-    dims3D[2] = N_particles;
+    dims3D[2] = 1;
+    dims3D[3] = 1;
+    dims3D[4] = N_particles;
 
-    offset2D[0] = cell_idx;
-    offset2D[1] = 0;
+    offset2D[0] = i;
+    offset2D[1] = j;
+    offset2D[2] = k;
+    offset2D[3] = 0;
+
     offset3D[0] = 0;
-    offset3D[1] = cell_idx;
-    offset3D[2] = 0;
+    offset3D[1] = i;
+    offset3D[2] = j;
+    offset3D[3] = k;
+    offset3D[4] = 0;
 
 
 
@@ -205,7 +229,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 
     //create/close dataspace, dataset, write data, for status
     dataset_id = H5Dopen2(file_id, "status", H5P_DEFAULT);
-    memspace_id = H5Screate_simple(2,dims2D, NULL); 
+    memspace_id = H5Screate_simple(4,dims2D, NULL); 
     dataspace_id = H5Dget_space (dataset_id);
     status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset2D,
                                  stride, dims2D, block);
@@ -217,7 +241,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 
     //create/close dataspace, dataset, write data, for init location
     dataset_id = H5Dopen2(file_id, "position", H5P_DEFAULT);
-    memspace_id = H5Screate_simple(3,dims3D, NULL); 
+    memspace_id = H5Screate_simple(5,dims3D, NULL); 
     dataspace_id = H5Dget_space (dataset_id);
     status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
                                  stride, dims3D, block);
@@ -229,7 +253,7 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 
     //create/close dataspace, dataset, write data, for init velocity
     dataset_id = H5Dopen2(file_id, "velocity", H5P_DEFAULT);
-    memspace_id = H5Screate_simple(3,dims3D, NULL); 
+    memspace_id = H5Screate_simple(5,dims3D, NULL); 
     dataspace_id = H5Dget_space (dataset_id);
     status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
                                  stride, dims3D, block);
