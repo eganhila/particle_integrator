@@ -1,5 +1,5 @@
-CXX=g++
-CXXFLAGS=-std=c++11 #-lhdf5
+CXX=g++-8 #g++
+CXXFLAGS=-std=c++11 -fopenmp #-lhdf5
 LIBS=-std=c++11 -lhdf5 -lgtest -lpthread 
 ADD_FLAGS=
 

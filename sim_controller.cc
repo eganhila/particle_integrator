@@ -111,6 +111,8 @@ void SimController :: run(){
 
         // Each cell needs N_particles, this is what we're going
         // to parallelize over
+        
+        #pragma omp parallel for schedule(dynamic)
         for (p_idx=0; p_idx< N_particles; p_idx++){
 
             Particle p;
