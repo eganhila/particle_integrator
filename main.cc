@@ -10,11 +10,11 @@ int main(){
 
     SimDat sd(120);
     read_simulation_data(sd,
-            "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_50nT_Eint.h5");
+            "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_100nT_Eint.h5");
 
 
-    SimController sc(10, 1000, 0.01, sd, "pinter_output.h5");
-    sc.set_particle_pop(16, 1, 300);
+    SimController sc(8, 1000, 0.01, sd, "pinter_output.h5");
+    sc.set_particle_pop(16, 1, 300.0);
     sc.run();
 
     /*

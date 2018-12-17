@@ -15,15 +15,14 @@ void reverse_cellidx(int cellidx, int dim, int & i, int &j,  int &k){
 }
 
 
-float inv_maxwell_cdf(float v, float a){
-    return erf(v/(pow(2,0.5)*a))- pow(2/M_PI, 0.5)*(v*exp(-1*v*v/(2*a*a)))/a;
-
+float maxwell_pdf(float v, float a){
+    return pow(2/M_PI,0.5)*v*v*exp(-1*v*v/(2*a*a))/pow(a,3);
 }
 
 
 Particle SimController :: draw_particle(int cell_idx){
 
-    float x, y, z, x0,y0,z0,vx,vy,vz,u,v;
+    float x, y, z, x0,y0,z0,vx,vy,vz,pv,v, pu;
     float noon_f=1.0, night_f=0.1;
     int i,j,k;
 
@@ -57,13 +56,16 @@ Particle SimController :: draw_particle(int cell_idx){
     vy = vy/v;
     vz = vz/v;
 
-    //Now want to draw speed from maxwellian
-    //  distribution using inverse random sampling
-    //  and scale velocity vector to maxwell speed
-    //  90.82e-3 factor from sqrt(kT/mu mH) into km/s
 
-    u = uniform_dist(e2);
-    v = inv_maxwell_cdf(u, 90.82e-3*pow(pop_T/pop_m,0.5));
+    //Changing to accept/reject method because before I 
+    //  was using CDF not inverse CDF. 
+    while (true){
+        float a = 90.82e-3*pow(pop_T/pop_m,0.5);
+        v = uniform_dist(e2)*5*a;
+        pv = maxwell_pdf(v, a); 
+        pu = uniform_dist(e2);
+        if (pu<pv){break;}
+    }
 
     vx = vx*v;
     vy = vy*v;
@@ -286,7 +288,6 @@ bool SimController :: eval_cell(int cell_idx){
     //want < 2.5 RM, > 1 RM
     if (r > 1.5){evaluate=false;}
     if (r < 1){evaluate=false;}
-
 
     return evaluate;
 }
