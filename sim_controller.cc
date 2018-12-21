@@ -93,7 +93,7 @@ void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
 
     int cell_idx = cell_i*sd->dim*sd->dim+cell_j*sd->dim+cell_k;
 
-    setup_particlewriter();
+    //setup_particlewriter();
     for (int p_idx=0; p_idx< N_particles; p_idx++){
 
         Particle p;
@@ -109,7 +109,7 @@ void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
         int Nsteps = 0;
         int p_status = 0;
         float out_data[6][MAX_STEPS] = {0}; 
-        while (p_status == 0){
+        while ((p_status == 0)&&(Nsteps<MAX_STEPS)){
             intg.integrate_step();
             p_status = intg.evaluate_bcs();
 
@@ -119,7 +119,7 @@ void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
             Nsteps +=1;
         }
 
-        write_particle(p_idx, Nsteps, out_data);
+        write_particle(cell_idx, p_idx, Nsteps, out_data);
     }
 
 }
@@ -132,7 +132,7 @@ void SimController::setup_particlewriter(){
     status = H5Fclose(file_id);
 
 }
-void SimController::write_particle(int p_idx, int N, float  pdata[6][MAX_STEPS]){
+void SimController::write_particle(int cell_idx, int p_idx, int N, float  pdata[6][MAX_STEPS]){
     herr_t      status;
     hid_t file_id, dataspace_id, dataset_id;
 
@@ -143,8 +143,8 @@ void SimController::write_particle(int p_idx, int N, float  pdata[6][MAX_STEPS])
     dims[0] = 6;
     dims[1] = MAX_STEPS;
 
-    char buffer [10];
-    sprintf (buffer, "%08d",p_idx);
+    char buffer [20];
+    sprintf (buffer, "%08d_%08d",cell_idx, p_idx);
 
     dataspace_id = H5Screate_simple(2, dims, NULL);
     dataset_id = H5Dcreate2(file_id, buffer, H5T_NATIVE_FLOAT,

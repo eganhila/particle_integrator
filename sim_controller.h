@@ -25,7 +25,7 @@ class SimController {
     bool eval_cell(int cell_idx);
     void setup_datawriter();
     void setup_particlewriter();
-    void write_particle(int p_idx, int N, float  pdata[6][MAX_STEPS]);
+    void write_particle(int cell_idx, int p_idx, int N, float  pdata[6][MAX_STEPS]);
 
 
     SimController(int new_N_particles, 
