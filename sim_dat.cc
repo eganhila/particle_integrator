@@ -36,9 +36,9 @@ int read_simulation_data(SimDat& sd, const char* file_name){
     status = H5Dclose (dsety);
     status = H5Dclose (dsetz);
     
-    dsetx = H5Dopen (file, "electric_field_x", H5P_DEFAULT);
-    dsety = H5Dopen (file, "electric_field_y", H5P_DEFAULT);
-    dsetz = H5Dopen (file, "electric_field_z", H5P_DEFAULT);
+    dsetx = H5Dopen (file, "motional_electric_field_x", H5P_DEFAULT);
+    dsety = H5Dopen (file, "motional_electric_field_y", H5P_DEFAULT);
+    dsetz = H5Dopen (file, "motional_electric_field_z", H5P_DEFAULT);
 
     status = H5Dread(dsetx, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ex);
     status = H5Dread(dsety, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, sd.Ey);
