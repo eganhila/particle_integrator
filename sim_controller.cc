@@ -8,6 +8,7 @@
 #include "hdf5.h"
 #include <math.h>
 
+
 void reverse_cellidx(int cellidx, int dim, int & i, int &j,  int &k){
     i = cellidx/(dim*dim); 
     j = cellidx%(dim*dim)/dim;
@@ -57,20 +58,24 @@ Particle SimController :: draw_particle(int cell_idx){
     vz = vz/v;
 
 
-    //Changing to accept/reject method because before I 
-    //  was using CDF not inverse CDF. 
-    while (true){
-        float a = 90.82e-3*pow(pop_T/pop_m,0.5);
+    float a = 90.82e-3*pow(pop_T/pop_m,0.5);
+    if (uniform_E){
         v = uniform_dist(e2)*5*a;
-        pv = maxwell_pdf(v, a); 
-        pu = uniform_dist(e2);
-        if (pu<pv){break;}
+    }
+    else{
+        //Changing to accept/reject method because before I 
+        //  was using CDF not inverse CDF. 
+        while (true){
+            v = uniform_dist(e2)*5*a;
+            pv = maxwell_pdf(v, a); 
+            pu = uniform_dist(e2);
+            if (pu<pv){break;}
+        }
     }
 
     vx = vx*v;
     vy = vy*v;
-    vz = vx*v;
-
+    vz = vz*v;
 
     Particle p;
     p.state[0] = x;
@@ -84,7 +89,79 @@ Particle SimController :: draw_particle(int cell_idx){
     return p;
 }
 
-void SimController :: run(){
+void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
+
+    int cell_idx = cell_i*sd->dim*sd->dim+cell_j*sd->dim+cell_k;
+
+    setup_particlewriter();
+    for (int p_idx=0; p_idx< N_particles; p_idx++){
+
+        Particle p;
+        //draw particle from distribution
+        p = draw_particle(cell_idx);
+
+        //Setup integrator
+        Integrator intg(p, 0.0, t_final, dt);
+        intg.set_sd(*sd);
+        intg.set_accel(simDat_accel);
+        
+        //Particle integrated (work done here)
+        int Nsteps = 0;
+        int p_status = 0;
+        float out_data[6][MAX_STEPS] = {0}; 
+        while (p_status == 0){
+            intg.integrate_step();
+            p_status = intg.evaluate_bcs();
+
+            for (int i=0; i<6; i++){
+                out_data[i][Nsteps] = p.state[i]; 
+            }
+            Nsteps +=1;
+        }
+
+        write_particle(p_idx, Nsteps, out_data);
+    }
+
+}
+
+void SimController::setup_particlewriter(){
+    hid_t file_id;
+    herr_t      status;
+
+    file_id = H5Fcreate(outname, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Fclose(file_id);
+
+}
+void SimController::write_particle(int p_idx, int N, float  pdata[6][MAX_STEPS]){
+    herr_t      status;
+    hid_t file_id, dataspace_id, dataset_id;
+
+    // open existing file
+    file_id = H5Fopen(outname, H5F_ACC_RDWR, H5P_DEFAULT);
+
+    hsize_t dims[2];
+    dims[0] = 6;
+    dims[1] = MAX_STEPS;
+
+    char buffer [10];
+    sprintf (buffer, "%08d",p_idx);
+
+    dataspace_id = H5Screate_simple(2, dims, NULL);
+    dataset_id = H5Dcreate2(file_id, buffer, H5T_NATIVE_FLOAT,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL,
+		      H5P_DEFAULT, pdata);
+
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+    //close group and file
+    status = H5Fclose(file_id);
+}
+
+
+void SimController :: run_sim(){
     int cell_idx;
     int p_idx;
     Particle * cell_particles;
@@ -283,11 +360,29 @@ bool SimController :: eval_cell(int cell_idx){
     x = sd->x[i];
     y = sd->y[j];
     z = sd->z[k];
-    r = pow(x*x+y*y+z*z,0.5)/3390.0;
+    r = pow(x*x+y*y+z*z,0.5);
 
     //want < 2.5 RM, > 1 RM
-    if (r > 1.5){evaluate=false;}
-    if (r < 1){evaluate=false;}
+    //if (r > 3390*1.35){evaluate=false;}
+    //if (r < 3390*1.05){evaluate=false;}
+    
+    //if ((i == 59)&&(j==43)&&(k==59)){evaluate=true;}
+    //else{evaluate=false;}
+    
+    evaluate=false;
+    if (i == 59){
+        if (j == 59){
+            if ((k>=75) && (k<=82)){ evaluate=true;}
+            if ((k<=43) && (k>=37)){ evaluate=true;}
+        }
+        if (k == 59){
+            if ((j>=75) && (j<=82)){ evaluate=true;}
+            if ((j<=43) && (j>=37)){ evaluate=true;}
+        }
+    }
+    if ((j == 59) && (k == 59)){
+        if ((i>=75)&&(i<=82)){evaluate=true;}
+    }
 
     return evaluate;
 }

@@ -3,6 +3,7 @@
 
 #include "sim_dat.h"
 #include "integrator.h"
+#define MAX_STEPS 100000
 
 class SimController {
     private:
@@ -14,13 +15,17 @@ class SimController {
         int N_particles;
         Particle * init_pop;
         const char * outname;
+        bool uniform_E = false;
 
     Particle draw_particle(int cell_idx);
-    void run();
+    void run_sim();
+    void run_cell(int i, int j, int k);
     void write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status);
     void set_particle_pop(float mass, float charge, float temperature);
     bool eval_cell(int cell_idx);
     void setup_datawriter();
+    void setup_particlewriter();
+    void write_particle(int p_idx, int N, float  pdata[6][MAX_STEPS]);
 
 
     SimController(int new_N_particles, 
