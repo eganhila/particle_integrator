@@ -4,9 +4,10 @@ import sys
 import getopt
 
 def compress_dataset(fname):
-    with h5py.File(fname) as f:
+    with h5py.File(fname, 'a') as f:
         for key in list(f.keys()):
             N =  np.argmax(np.all(f[key][:] == 0, axis=0))
+            if N==0:continue
             dat = f[key][:, :N]
             del f[key]
             f[key] =dat
