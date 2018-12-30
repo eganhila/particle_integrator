@@ -21,6 +21,32 @@ float maxwell_pdf(float v, float a){
 }
 
 
+Particle SimController :: draw_radial_particle(float r){
+    std::random_device rd;
+    std::mt19937 e2(rd());
+    std::uniform_real_distribution<> uniform_dist(0, 1);
+
+    Particle p = draw_particle(0);
+
+    float xhat,yhat,zhat, mag;
+
+    xhat = uniform_dist(e2)-0.5;
+    yhat = uniform_dist(e2)-0.5;
+    zhat = uniform_dist(e2)-0.5;
+
+    mag = pow(xhat*xhat+yhat*yhat+zhat*zhat,0.5);
+
+    xhat = xhat/mag;
+    yhat = yhat/mag;
+    zhat = zhat/mag;
+
+    p.state[0] = xhat*r;
+    p.state[1] = yhat*r;
+    p.state[2] = zhat*r;
+
+    return p;
+}
+
 Particle SimController :: draw_particle(int cell_idx){
 
     float x, y, z, x0,y0,z0,vx,vy,vz,pv,v, pu;
@@ -89,7 +115,36 @@ Particle SimController :: draw_particle(int cell_idx){
     return p;
 }
 
-void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
+void SimController :: run_radius(float r, int N_p){
+    for (int p_idx=0; p_idx< N_p; p_idx++){
+
+        Particle p;
+        //draw particle from distribution
+        p = draw_radial_particle(r);
+
+        Integrator intg(p, 0.0, t_final, dt);
+        intg.set_sd(*sd);
+        intg.set_accel(simDat_accel);
+        
+        //Particle integrated (work done here)
+        int Nsteps = 0;
+        int p_status = 0;
+        float out_data[6][MAX_STEPS] = {0}; 
+        while ((p_status == 0)&&(Nsteps<MAX_STEPS)){
+            intg.integrate_step();
+            p_status = intg.evaluate_bcs();
+
+            for (int i=0; i<6; i++){
+                out_data[i][Nsteps] = p.state[i]; 
+            }
+            Nsteps +=1;
+        }
+
+        write_particle(0, p_idx, Nsteps, out_data);
+    }
+}
+
+void SimController :: run_cell(int cell_i, int cell_j, int cell_k, int label){
 
     int cell_idx = cell_i*sd->dim*sd->dim+cell_j*sd->dim+cell_k;
 
@@ -119,7 +174,11 @@ void SimController :: run_cell(int cell_i, int cell_j, int cell_k){
             Nsteps +=1;
         }
 
-        write_particle(cell_idx, p_idx, Nsteps, out_data);
+        if (label == -1){
+            write_particle(cell_idx, p_idx, Nsteps, out_data);
+        }else{
+            write_particle(label, p_idx, Nsteps, out_data);
+        }
     }
 
 }
@@ -166,7 +225,7 @@ void SimController :: run_sim(){
     int p_idx;
     Particle * cell_particles;
     int * all_status;
-    float * positions, * velocities;
+    float * positions_start, * velocities_start, *positions_end, *velocities_end;
     hid_t       file_id;   /* file identifier */
     herr_t      status;
 
@@ -177,8 +236,10 @@ void SimController :: run_sim(){
     // keep re-using
     cell_particles = new Particle[N_particles]; 
     all_status = new int[N_particles];
-    positions = new float[N_particles*3];
-    velocities = new float[N_particles*3];
+    positions_start = new float[N_particles*3];
+    velocities_start = new float[N_particles*3];
+    positions_end = new float[N_particles*3];
+    velocities_end = new float[N_particles*3];
 
 
     // Iterate over all cells
@@ -201,8 +262,8 @@ void SimController :: run_sim(){
 
             //store init particle state
             for (int i=0;i<3;i++){
-                positions[p_idx+i*N_particles] = p.state[i];
-                velocities[p_idx+i*N_particles] = p.state[i+3];
+                positions_start[p_idx+i*N_particles] = p.state[i];
+                velocities_start[p_idx+i*N_particles] = p.state[i+3];
             }
 
 
@@ -213,18 +274,27 @@ void SimController :: run_sim(){
             
             //Particle integrated (work done here)
             all_status[p_idx] = intg.integrate();
+
+            //store final particle state
+            for (int i=0;i<3;i++){
+                positions_end[p_idx+i*N_particles] = p.state[i];
+                velocities_end[p_idx+i*N_particles] = p.state[i+3];
+            }
+
         }
             
 
         // Write out cell
-        write_cell_data(cell_idx, positions, velocities, all_status);
+        write_cell_data(cell_idx, positions_start, velocities_start,positions_end, positions_end, all_status);
     } 
 
     //Delete data structures
     delete[] cell_particles;
     delete[] all_status;
-    delete[] positions; 
-    delete[] velocities;
+    delete[] positions_start; 
+    delete[] velocities_start;
+    delete[] positions_end; 
+    delete[] velocities_end;
 
 
 
@@ -257,22 +327,33 @@ void SimController :: setup_datawriter(){
 
 
     dataspace_id = H5Screate_simple(5, dims3D, NULL);
-    dataset_id = H5Dcreate2(file_id, "position", H5T_NATIVE_FLOAT,
+    dataset_id = H5Dcreate2(file_id, "position_start", H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
     dataspace_id = H5Screate_simple(5, dims3D, NULL);
-    dataset_id = H5Dcreate2(file_id, "velocity", H5T_NATIVE_FLOAT,
+    dataset_id = H5Dcreate2(file_id, "velocity_start", H5T_NATIVE_FLOAT,
                             dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
+    dataspace_id = H5Screate_simple(5, dims3D, NULL);
+    dataset_id = H5Dcreate2(file_id, "position_end", H5T_NATIVE_FLOAT,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+    dataspace_id = H5Screate_simple(5, dims3D, NULL);
+    dataset_id = H5Dcreate2(file_id, "velocity_end", H5T_NATIVE_FLOAT,
+                            dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
 
     status = H5Fclose(file_id);
 }
 
-void SimController :: write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status){
+void SimController :: write_cell_data(int cell_idx, float * positions_start, float * velocities_start,float * positions_end, float * velocities_end, int * all_status){
     hid_t       file_id, dataset_id, dataspace_id, memspace_id;  /* identifiers */
     hsize_t  dims2D[4], dims3D[5], offset2D[4], offset3D[5];
     hsize_t stride[5] = {1,1,1,1,1}, block[5]={1,1,1,1,1};
@@ -323,35 +404,57 @@ void SimController :: write_cell_data(int cell_idx, float * positions, float * v
 
 
     //create/close dataspace, dataset, write data, for init location
-    dataset_id = H5Dopen2(file_id, "position", H5P_DEFAULT);
+    dataset_id = H5Dopen2(file_id, "position_start", H5P_DEFAULT);
     memspace_id = H5Screate_simple(5,dims3D, NULL); 
     dataspace_id = H5Dget_space (dataset_id);
     status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
                                  stride, dims3D, block);
     status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
-                      positions);
+                      positions_start);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
 
     //create/close dataspace, dataset, write data, for init velocity
-    dataset_id = H5Dopen2(file_id, "velocity", H5P_DEFAULT);
+    dataset_id = H5Dopen2(file_id, "velocity_start", H5P_DEFAULT);
     memspace_id = H5Screate_simple(5,dims3D, NULL); 
     dataspace_id = H5Dget_space (dataset_id);
     status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
                                  stride, dims3D, block);
     status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
-                      velocities);
+                      velocities_start);
     status = H5Dclose(dataset_id);
     status = H5Sclose(dataspace_id);
 
+    //create/close dataspace, dataset, write data, for init location
+    dataset_id = H5Dopen2(file_id, "position_end", H5P_DEFAULT);
+    memspace_id = H5Screate_simple(5,dims3D, NULL); 
+    dataspace_id = H5Dget_space (dataset_id);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
+                                 stride, dims3D, block);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
+                      positions_end);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+
+
+    //create/close dataspace, dataset, write data, for init velocity
+    dataset_id = H5Dopen2(file_id, "velocity_end", H5P_DEFAULT);
+    memspace_id = H5Screate_simple(5,dims3D, NULL); 
+    dataspace_id = H5Dget_space (dataset_id);
+    status = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset3D,
+                                 stride, dims3D, block);
+    status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, memspace_id, dataspace_id, H5P_DEFAULT,
+                      velocities_end);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
 
     //close group and file
     status = H5Fclose(file_id);
 }
 
 bool SimController :: eval_cell(int cell_idx){
-    bool evaluate = true;
+    bool evaluate = false;
     float x,y,z,r;
     int i,j,k;
 
@@ -363,12 +466,13 @@ bool SimController :: eval_cell(int cell_idx){
     r = pow(x*x+y*y+z*z,0.5);
 
     //want < 2.5 RM, > 1 RM
-    //if (r > 3390*1.35){evaluate=false;}
-    //if (r < 3390*1.05){evaluate=false;}
+    if ((r > 3390+300-100) && (r < 3390+800+100)){evaluate=true;}
+    //if ((r > 3390+800-100) && (r < 3390+800+100)){evaluate=true;}
     
     //if ((i == 59)&&(j==43)&&(k==59)){evaluate=true;}
     //else{evaluate=false;}
     
+    /*
     evaluate=false;
     if (i == 59){
         if (j == 59){
@@ -383,7 +487,7 @@ bool SimController :: eval_cell(int cell_idx){
     if ((j == 59) && (k == 59)){
         if ((i>=75)&&(i<=82)){evaluate=true;}
     }
-
+    */
     return evaluate;
 }
 

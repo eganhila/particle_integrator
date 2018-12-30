@@ -18,9 +18,11 @@ class SimController {
         bool uniform_E = false;
 
     Particle draw_particle(int cell_idx);
+    Particle draw_radial_particle(float r);
     void run_sim();
-    void run_cell(int i, int j, int k);
-    void write_cell_data(int cell_idx, float * positions, float * velocities, int * all_status);
+    void run_radius(float r, int N_p);
+    void run_cell(int i, int j, int k, int label);
+    void write_cell_data(int cell_idx, float * positions_start, float * velocities_start, float * positions_end, float * velocities_end,int * all_status);
     void set_particle_pop(float mass, float charge, float temperature);
     bool eval_cell(int cell_idx);
     void setup_datawriter();
