@@ -12,28 +12,49 @@ int main(){
 
     SimDat sd(120);
     read_simulation_data(sd,
-            "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_10nT_Eint.h5");
+            "/Users/hilaryegan/Data/MagneticField/PrelimAllEnd/B_100nT_Eint.h5");
 
-    SimController sc(100, 10000, 0.01, sd, "pinter_output.h5");
+    SimController sc(100, 100000, 0.1, sd, "pinter_output.h5");
 
-    sc.set_particle_pop(16, 1, 1000000.0);
-    sc.uniform_E = true;
+    sc.set_particle_pop(16, 1, 10000.0);
+    sc.uniform_E = false;
     sc.setup_particlewriter();
+//    sc.run_radius(3390+300, 1e6);
+
 
 //    sc.run_cell(59,59,39);
 
+    float phi = M_PI/2; 
+    float theta = 0;
+    //float r = 3839;
     float pos[3];
     int  idx[3];
-    for (float theta=0; theta<=2*M_PI; theta+=0.1){
-        pos[0] = cos(theta)*3690.0;
-        pos[1] = 0;
-        pos[2] = sin(theta)*3690.0;
+    int i = 0;
+    for (float r=3390; r<=6780; r+=200){
+        pos[0] = r*cos(theta)*sin(phi);
+        pos[1] = r*sin(theta)*sin(phi); 
+        pos[2] = r*cos(phi); 
 
         getCellIdx(sd, pos, idx);
-        sc.run_cell(idx[0], idx[1], idx[2]);
+        std::cout<<pos[0]<<", "<<pos[1]<<", "<<pos[2]<<std::endl;
+        std::cout<<idx[0]<<", "<<idx[1]<<", "<<idx[2]<<std::endl;
+        sc.run_cell(idx[0], idx[1], idx[2], i);
+        i+=1;
     }
-    
-    //sc.run_sim();
+
+    /*
+    float pos[3];
+    int idx[3];
+    pos[0] = 800;
+    pos[1] = 0;
+    pos[2] = 0;
+
+    getCellIdx(sd, pos,idx);
+    sc.run_cell(idx[0],idx[1], idx[2]);
+*/
+
+
+  //  sc.run_sim();
     /*
     Particle p;
     p.state[0] = 0*3390;
