@@ -4,6 +4,7 @@
 #include "interpolate.h"
 #include <stddef.h>
 #include <iostream>
+#include "math.h"
 
 
 
@@ -98,6 +99,64 @@ int Integrator::evaluate_bcs(){
 
 }
 
+bool Integrator::evaluate_psphere(){
+    if (particle->state[0]>0.5*3390+init_state[0]){
+        return true;}
+    else {return false;}
+
+}
+bool Integrator::evaluate_tail(){
+    if (particle->state[0]<-1.1*3390){
+        return true;}
+    else {return false;}
+
+}
+
+int Integrator::evaluate_final_status(){
+    float vx,vy,vz,vfinal,dr_x,dr_y,dr_z,dr;
+    int pstatus;
+    pstatus = evaluate_bcs();
+
+    //escape
+    if (pstatus == 1){
+        if (within_psphere){
+            return 3; //plasmasphere escape
+        }
+        else{
+            vx = particle->state[3]; 
+            vy = particle->state[4]; 
+            vz = particle->state[5]; 
+            vfinal = pow(vx*vx+vy*vy+vz*vz, 0.5);
+
+            if (vfinal > 0.95*350){
+                return 6; //plume escape
+            }
+            else {
+                return 5; //Direct escape
+            }
+        }
+    }
+    else{ //bound
+
+        dr_x = particle->state[0]-init_state[0];
+        dr_y = particle->state[1]-init_state[1];
+        dr_z = particle->state[2]-init_state[2];
+
+        dr = pow(dr_x*dr_x+dr_y*dr_y+dr_z*dr_z,0.5);
+
+        if (dr < 0.5*3390){
+            return 1; //closely bound
+        }
+        else{
+
+            if (within_tail){ return 2;} //bound tail
+            else {return 3;} //bound pshere
+
+        }
+
+    }
+}
+
 
 int Integrator::integrate(){
     int pstatus = 0;
@@ -114,8 +173,15 @@ int Integrator::integrate(){
         //check if still in bounds
         if (has_sd) {
            pstatus = evaluate_bcs(); 
+           if (! within_psphere){
+               within_psphere = evaluate_psphere();}
+           if (! within_tail){
+               within_tail = evaluate_tail();
+           }
            if (pstatus != 0){ break;}
         }
     }
+
+    pstatus = evaluate_final_status();
     return pstatus;
 }
