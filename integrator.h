@@ -29,6 +29,9 @@ class Integrator {
         Particle * particle;
         SimDat * sd = NULL;
         bool has_sd = false;
+        float init_state[6];
+        bool within_psphere = false;
+        bool within_tail = false;
         bool (*acc_func)(const Particle & particle, const SimDat &sd, float * acc) = NULL;
 
 
@@ -46,6 +49,9 @@ class Integrator {
         bool integrate_step();
         int integrate();
         int evaluate_bcs();
+        int evaluate_final_status();
+        bool evaluate_tail();
+        bool evaluate_psphere();
 };
 
 
