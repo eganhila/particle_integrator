@@ -1,4 +1,4 @@
-# particle_integrator
+# pinter
 
 This package is designed to integrate a particle (or population of particles) through a plasma simulation.
 
